@@ -1,0 +1,21 @@
+COREMODS - Email Verification Required
+
+Hello {{username}},
+
+Welcome to Coremods! Thank you for joining our platform.
+
+To complete your registration and start using your account, please verify your email address by clicking the link below:
+
+{{verificationUrl}}
+
+IMPORTANT: This verification link will expire in 24 hours for security reasons.
+
+If you're having trouble clicking the link, copy and paste the entire URL into your web browser's address bar.
+
+If you didn't create an account with Coremods, you can safely ignore this email.
+
+Best regards,
+The Coremods Team
+
+---
+This is an automated message. Please do not reply to this email. 
