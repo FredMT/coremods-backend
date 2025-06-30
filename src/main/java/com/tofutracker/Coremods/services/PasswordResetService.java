@@ -31,7 +31,6 @@ public class PasswordResetService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public void generatePasswordResetToken(User user) {
-        // Delete any existing tokens for this user
         tokenRepository.deleteByUser(user);
 
         String token = generateSecureToken();
@@ -45,7 +44,6 @@ public class PasswordResetService {
 
         tokenRepository.save(resetToken);
 
-        // Send password reset email
         emailService.sendPasswordResetEmail(user, token);
     }
 
@@ -66,7 +64,6 @@ public class PasswordResetService {
             return false;
         }
 
-        // Token is valid, delete it (one-time use)
         tokenRepository.delete(resetToken);
         return true;
     }

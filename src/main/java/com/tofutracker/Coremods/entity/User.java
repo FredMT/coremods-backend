@@ -111,7 +111,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return enabled; // Only check if account is enabled
+        return enabled;
     }
     
     public boolean isEmailVerified() {

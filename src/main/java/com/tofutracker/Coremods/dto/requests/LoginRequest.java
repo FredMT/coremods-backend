@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.dto;
+package com.tofutracker.Coremods.dto.requests;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

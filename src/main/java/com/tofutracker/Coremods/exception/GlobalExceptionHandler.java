@@ -1,7 +1,6 @@
 package com.tofutracker.Coremods.exception;
 
 import com.tofutracker.Coremods.dto.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

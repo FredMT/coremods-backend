@@ -20,7 +20,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
 
-    public void registerUser(String username, String email, String password) {
+    public User registerUser(String username, String email, String password) {
 
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists: " + username);
@@ -45,11 +45,17 @@ public class UserService {
 
         emailVerificationService.generateVerificationToken(savedUser);
 
+        return savedUser;
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+    
+    @Transactional(readOnly = true)
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Transactional(readOnly = true)
@@ -85,5 +91,4 @@ public class UserService {
         userRepository.save(user);
         log.info("Password updated successfully for user: {}", user.getUsername());
     }
-
 } 

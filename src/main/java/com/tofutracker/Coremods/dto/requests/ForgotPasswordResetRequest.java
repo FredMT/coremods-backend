@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.dto;
+package com.tofutracker.Coremods.dto.requests;
 
 import com.tofutracker.Coremods.dto.annotation.PasswordMatch;
 import com.tofutracker.Coremods.dto.annotation.StrongPassword;

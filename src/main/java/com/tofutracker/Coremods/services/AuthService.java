@@ -1,6 +1,10 @@
 package com.tofutracker.Coremods.services;
 
 import com.tofutracker.Coremods.dto.*;
+import com.tofutracker.Coremods.dto.requests.ForgotPasswordRequest;
+import com.tofutracker.Coremods.dto.requests.ForgotPasswordResetRequest;
+import com.tofutracker.Coremods.dto.requests.RegisterRequest;
+import com.tofutracker.Coremods.dto.requests.ResetPasswordRequest;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
@@ -14,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,9 +122,25 @@ public class AuthService {
         }
         
         try {
-            User authenticatedUser = (User) authentication.getPrincipal();
+            Object principal = authentication.getPrincipal();
             
-            Optional<User> currentUser = userService.findById(authenticatedUser.getId());
+            if (!(principal instanceof UserDetails)) {
+                throw new UnauthorizedException("Invalid authentication");
+            }
+            
+            User user;
+            if (principal instanceof User) {
+                user = (User) principal;
+            } else {
+                UserDetails userDetails = (UserDetails) principal;
+                Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
+                if (userOpt.isEmpty()) {
+                    throw new UnauthorizedException("User not found");
+                }
+                user = userOpt.get();
+            }
+            
+            Optional<User> currentUser = userService.findById(user.getId());
             
             if (currentUser.isEmpty()) {
                 SecurityContextHolder.clearContext();
@@ -141,7 +162,7 @@ public class AuthService {
                 throw new UnauthorizedException("User no longer exists");
             }
             
-            Map<String, Object> userData = getUserObjectMap(authentication);
+            Map<String, Object> userData = getUserObjectMap(currentUser.get());
             return ResponseEntity.ok(ApiResponse.success("User data retrieved", userData));
         } catch (ClassCastException e) {
             log.error("Error casting authentication principal to User", e);
@@ -176,14 +197,28 @@ public class AuthService {
         }
 
         try {
-            User user = (User) authentication.getPrincipal();
+            Object principal = authentication.getPrincipal();
             
-            // Validate current password
+            if (!(principal instanceof UserDetails)) {
+                throw new UnauthorizedException("Invalid authentication");
+            }
+            
+            User user;
+            if (principal instanceof User) {
+                user = (User) principal;
+            } else {
+                UserDetails userDetails = (UserDetails) principal;
+                Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
+                if (userOpt.isEmpty()) {
+                    throw new UnauthorizedException("User not found");
+                }
+                user = userOpt.get();
+            }
+            
             if (!userService.validateCurrentPassword(user, request.getCurrentPassword())) {
                 throw new BadRequestException("Current password is incorrect");
             }
 
-            // Update password
             userService.updatePassword(user, request.getNewPassword());
 
             return ResponseEntity.ok(ApiResponse.success("Password updated successfully"));
@@ -213,7 +248,6 @@ public class AuthService {
             Optional<User> userOpt = userService.findByEmail(request.getEmail());
 
             if (userOpt.isEmpty()) {
-                // Don't reveal if email exists or not for security
                 return ResponseEntity.ok(ApiResponse.success("If an account with that email exists, a password reset link has been sent"));
             }
 
@@ -239,7 +273,6 @@ public class AuthService {
         }
 
         try {
-            // Validate and get the user from the reset token
             Optional<User> userOpt = passwordResetService.getUserByResetToken(request.getToken());
             
             if (userOpt.isEmpty()) {
@@ -248,14 +281,12 @@ public class AuthService {
 
             User user = userOpt.get();
             
-            // Consume the token (delete it)
             boolean tokenValid = passwordResetService.validateAndConsumeResetToken(request.getToken());
             
             if (!tokenValid) {
                 throw new BadRequestException("Invalid or expired reset token");
             }
 
-            // Update password - using userId to ensure we have a fresh entity
             userService.updatePassword(user.getId(), request.getNewPassword());
 
             return ResponseEntity.ok(ApiResponse.success("Password reset successfully. You can now log in with your new password."));
@@ -268,9 +299,7 @@ public class AuthService {
         }
     }
 
-    private static Map<String, Object> getUserObjectMap(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-
+    private static Map<String, Object> getUserObjectMap(User user) {
         Map<String, Object> userData = new HashMap<>();
         userData.put("userId", user.getId());
         userData.put("username", user.getUsername());
