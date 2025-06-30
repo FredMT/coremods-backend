@@ -1,6 +1,7 @@
-# Coremods Authentication System
+# Coremods
 
-A complete Spring Boot 3.5 authentication system with email verification, session-based authentication, and CSRF protection.
+**Coremods** is a game mods website currently under development, built with **Spring Boot 3.5**.  
+It aims to be a modern platform for discovering, uploading, and managing game modifications
 
 ## Features
 
@@ -22,42 +23,6 @@ A complete Spring Boot 3.5 authentication system with email verification, sessio
 - **Lombok** (Code generation)
 - **Jakarta Validation** (Request validation)
 
-## Database Setup
-
-1. **Install PostgreSQL** and create a database:
-
-   ```sql
-   CREATE DATABASE coremods;
-   CREATE USER postgres WITH PASSWORD 'postgres';
-   GRANT ALL PRIVILEGES ON DATABASE coremods TO postgres;
-   ```
-
-2. **Database Configuration** (already configured in `application.properties`):
-
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/coremods
-   spring.datasource.username=postgres
-   spring.datasource.password=postgres
-   ```
-
-3. **Database Migration**: Flyway will automatically create the required tables on startup.
-
-## Running the Application
-
-1. **Prerequisites**:
-
-   - Java 21+
-   - PostgreSQL running on localhost:5432
-   - Database 'coremods' created with user 'postgres'
-
-2. **Start the application**:
-
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-3. **Application will be available at**: `http://localhost:8080`
-
 ## API Endpoints
 
 ### Authentication Endpoints
@@ -71,10 +36,8 @@ Content-Type: application/json
 {
   "username": "johndoe",
   "email": "john@example.com",
-  "password": "password123",
-  "confirmPassword": "password123",
-  "firstName": "John",
-  "lastName": "Doe"
+  "password": "Password@123",
+  "confirmPassword": "Password@123"
 }
 ```
 
@@ -86,14 +49,14 @@ Content-Type: application/json
 
 {
   "usernameOrEmail": "johndoe",
-  "password": "password123"
+  "password": "Password@123"
 }
 ```
 
 #### 3. Verify Email
 
 ```http
-GET /auth/verify-email?token=ABC123...
+POST /auth/verify-email?token=ABC123...
 ```
 
 #### 4. Resend Verification Email
@@ -114,49 +77,45 @@ POST /auth/logout
 GET /auth/me
 ```
 
-### Protected Endpoints
-
-#### Dashboard
+#### 7. Reset Password (Authenticated)
 
 ```http
-GET /dashboard
+POST /auth/reset-password
+Content-Type: application/json
+
+{
+  "currentPassword": "OldPassword@123",
+  "newPassword": "NewPassword@123",
+  "confirmPassword": "NewPassword@123"
+}
 ```
 
-_Requires authentication_
+#### 8. Forgot Password (Request Reset)
 
-## Project Structure
+```http
+POST /auth/forgot-password
+Content-Type: application/json
 
-```
-src/main/java/com/tofutracker/Coremods/
-├── config/
-│   ├── SecurityConfig.java          # Spring Security configuration
-│   └── SchedulingConfig.java        # Scheduled tasks (token cleanup)
-├── dto/
-│   ├── ApiResponse.java             # Generic API response wrapper
-│   ├── LoginRequest.java            # Login request DTO
-│   └── RegisterRequest.java         # Registration request DTO
-├── entity/
-│   ├── EmailVerificationToken.java  # Email verification token entity
-│   └── User.java                    # User entity
-├── repository/
-│   ├── EmailVerificationTokenRepository.java
-│   └── UserRepository.java          # User repository
-├── services/
-│   ├── EmailService.java            # Email service (ready for Resend)
-│   ├── EmailVerificationService.java # Email verification logic
-│   └── UserService.java             # User management service
-├── web/
-│   ├── AuthController.java          # Authentication endpoints
-│   └── DashboardController.java     # Protected dashboard endpoint
-└── CoremodsApplication.java         # Main application class
+{
+  "email": "john@example.com"
+}
 ```
 
-## Testing the System
+#### 9. Reset Password with Token
 
-1. **Register a new user** via `/auth/register`
-2. **Check application logs** for the verification email (contains the verification URL)
-3. **Verify email** by calling the verification URL
-4. **Login** via `/auth/login`
-5. **Access protected endpoints** like `/dashboard`
+```http
+POST /auth/forgot-password/reset
+Content-Type: application/json
 
-Your authentication system is now fully set up and ready to use! 🎉
+{
+  "token": "ABC123...",
+  "newPassword": "NewPassword@123",
+  "confirmPassword": "NewPassword@123"
+}
+```
+
+## Milestones
+
+| Date       | Milestone                         |
+| ---------- | --------------------------------- |
+| 2025-06-30 | ✅ Session-based auth implemented |
