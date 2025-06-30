@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.repository;
 
-import com.tofutracker.Coremods.entity.EmailVerificationToken;
+import com.tofutracker.Coremods.entity.PasswordResetToken;
 import com.tofutracker.Coremods.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -12,14 +12,14 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
-public interface EmailVerificationTokenRepository extends JpaRepository<EmailVerificationToken, Long> {
+public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
 
-    Optional<EmailVerificationToken> findByToken(String token);
+    Optional<PasswordResetToken> findByToken(String token);
 
     void deleteByUser(User user);
 
     @Modifying
-    @Query("DELETE FROM EmailVerificationToken e WHERE e.expiryDate < :now")
+    @Query("DELETE FROM PasswordResetToken p WHERE p.expiryDate < :now")
     void deleteExpiredTokens(@Param("now") LocalDateTime now);
 
 }

@@ -20,7 +20,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
 
-    public User registerUser(String username, String email, String password) {
+    public void registerUser(String username, String email, String password) {
 
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists: " + username);
@@ -45,7 +45,6 @@ public class UserService {
 
         emailVerificationService.generateVerificationToken(savedUser);
 
-        return savedUser;
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +59,31 @@ public class UserService {
 
     public void markEmailAsVerified(Long userId) {
         userRepository.markEmailAsVerified(userId);
+    }
+
+    @Transactional
+    public boolean validateCurrentPassword(User user, String currentPassword) {
+        return passwordEncoder.matches(currentPassword, user.getPassword());
+    }
+
+    @Transactional
+    public void updatePassword(User user, String newPassword) {
+        User freshUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + user.getId()));
+        
+        freshUser.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(freshUser);
+        log.info("Password updated successfully for user: {}", freshUser.getUsername());
+    }
+
+    @Transactional
+    public void updatePassword(Long userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password updated successfully for user: {}", user.getUsername());
     }
 
 } 

@@ -1,7 +1,6 @@
 package com.tofutracker.Coremods.web;
 
-import com.tofutracker.Coremods.dto.ApiResponse;
-import com.tofutracker.Coremods.dto.RegisterRequest;
+import com.tofutracker.Coremods.dto.*;
 import com.tofutracker.Coremods.services.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,5 +44,20 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser() {
         return authService.getCurrentUser();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(@Valid @RequestBody ResetPasswordRequest request, BindingResult bindingResult) {
+        return authService.resetPassword(request, bindingResult);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request, BindingResult bindingResult) {
+        return authService.forgotPassword(request, bindingResult);
+    }
+
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(@Valid @RequestBody ForgotPasswordResetRequest request, BindingResult bindingResult) {
+        return authService.resetPasswordWithToken(request, bindingResult);
     }
 } 

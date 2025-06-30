@@ -21,9 +21,9 @@ public class EmailService {
 
             boolean emailSent = resendEmailService.sendEmailWithPlainText(
                 user.getEmail(),
-                emailContent.getSubject(),
-                emailContent.getHtmlContent(),
-                emailContent.getTextContent()
+                emailContent.subject(),
+                emailContent.htmlContent(),
+                emailContent.textContent()
             );
             
             if (!emailSent) {
@@ -87,6 +87,66 @@ public class EmailService {
             
         } catch (Exception e) {
             log.warn("Error sending welcome email to: {} (non-critical)", user.getEmail(), e);
+        }
+    }
+
+    public void sendPasswordResetEmail(User user, String token) {
+        log.info("Sending password reset email to: {}", user.getEmail());
+        
+        try {
+            String resetSubject = "Password Reset Request - Coremods";
+            String resetUrl = String.format("http://localhost:8080/auth/reset-password?token=%s", token);
+            
+            String resetHtml = String.format("""
+                <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #dc2626;">Password Reset Request</h2>
+                        <p>Hello %s,</p>
+                        <p>We received a request to reset your password for your Coremods account.</p>
+                        <p>Click the button below to reset your password. This link will expire in 5 minutes.</p>
+                        <p><a href="%s" style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">Reset Password</a></p>
+                        <p>If you didn't request a password reset, please ignore this email. Your password will remain unchanged.</p>
+                        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                        <p style="word-break: break-all; color: #6b7280;">%s</p>
+                        <p>Best regards,<br>The Coremods Team</p>
+                    </div>
+                </body>
+                </html>
+                """, user.getUsername(), resetUrl, resetUrl);
+            
+            String resetText = String.format("""
+                Password Reset Request
+                
+                Hello %s,
+                
+                We received a request to reset your password for your Coremods account.
+                
+                Click the link below to reset your password. This link will expire in 5 minutes.
+                
+                %s
+                
+                If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+                
+                Best regards,
+                The Coremods Team
+                """, user.getUsername(), resetUrl);
+            
+            boolean emailSent = resendEmailService.sendEmailWithPlainText(
+                user.getEmail(),
+                resetSubject,
+                resetHtml,
+                resetText
+            );
+            
+            if (!emailSent) {
+                log.error("Failed to send password reset email to: {}", user.getEmail());
+                throw new RuntimeException("Failed to send password reset email");
+            }
+            
+        } catch (Exception e) {
+            log.error("Error sending password reset email to: {}", user.getEmail(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
         }
     }
 } 

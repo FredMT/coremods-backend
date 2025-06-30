@@ -74,19 +74,6 @@ public class EmailTemplateService {
             """, verificationUrl, verificationUrl);
     }
 
-    public static class EmailContent {
-        private final String subject;
-        private final String htmlContent;
-        private final String textContent;
-
-        public EmailContent(String subject, String htmlContent, String textContent) {
-            this.subject = subject;
-            this.htmlContent = htmlContent;
-            this.textContent = textContent;
-        }
-
-        public String getSubject() { return subject; }
-        public String getHtmlContent() { return htmlContent; }
-        public String getTextContent() { return textContent; }
+    public record EmailContent(String subject, String htmlContent, String textContent) {
     }
 } 

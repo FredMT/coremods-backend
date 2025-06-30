@@ -76,10 +76,11 @@ public class SecurityConfig {
                     "/auth/verify-email",
                     "/auth/resend-verification",
                     "/auth/forgot-password",
-                    "/auth/reset-password",
+                    "/auth/forgot-password/reset",
                     "/auth/me",
                     "/error"
                 ).permitAll()
+                .requestMatchers("/auth/reset-password").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
@@ -89,7 +90,6 @@ public class SecurityConfig {
                 .logoutSuccessHandler((req, res, auth) -> {
                     res.setStatus(HttpServletResponse.SC_OK);
                     res.setContentType("application/json");
-                    res.getWriter().write("{\"success\":true,\"message\":\"Logout successful\"}");
                 })
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
