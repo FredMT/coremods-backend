@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.entity;
 
+import com.tofutracker.Coremods.config.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 
 @Entity
@@ -42,6 +42,11 @@ public class User implements UserDetails {
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @Column(name = "email_verified")
     @Builder.Default
@@ -79,19 +84,13 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
+        return role.getAuthorities();
     }
 
     @Override
@@ -112,10 +111,6 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
-    }
-    
-    public boolean isEmailVerified() {
-        return emailVerified;
     }
 
     @Override

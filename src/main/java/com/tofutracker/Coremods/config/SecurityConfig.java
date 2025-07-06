@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -29,9 +30,11 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.io.IOException;
+
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+
 
 @Configuration
 @EnableWebSecurity
@@ -72,7 +75,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
                     "/auth/register",
-                    "/auth/login", 
+                    "/auth/login",
                     "/auth/verify-email",
                     "/auth/resend-verification",
                     "/auth/forgot-password",
@@ -124,7 +127,7 @@ public class SecurityConfig {
     public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
         public JsonAuthenticationFilter() {
-            super(new AntPathRequestMatcher("/auth/login", "POST"));
+            super(antMatcher(HttpMethod.POST, "/auth/login"));
         }
 
         @Override
