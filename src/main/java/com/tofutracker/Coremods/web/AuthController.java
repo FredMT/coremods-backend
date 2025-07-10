@@ -6,6 +6,7 @@ import com.tofutracker.Coremods.dto.requests.ForgotPasswordResetRequest;
 import com.tofutracker.Coremods.dto.requests.RegisterRequest;
 import com.tofutracker.Coremods.dto.requests.ResetPasswordRequest;
 import com.tofutracker.Coremods.services.AuthService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {

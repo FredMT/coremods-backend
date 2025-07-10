@@ -124,7 +124,7 @@ public class AuthService {
         try {
             Object principal = authentication.getPrincipal();
             
-            if (!(principal instanceof UserDetails)) {
+            if (!(principal instanceof User)) {
                 throw new UnauthorizedException("Invalid authentication");
             }
             
@@ -144,21 +144,6 @@ public class AuthService {
             
             if (currentUser.isEmpty()) {
                 SecurityContextHolder.clearContext();
-                
-                try {
-                    ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-                    HttpServletResponse response = requestAttributes.getResponse();
-                    
-                    if (response != null) {
-                        Cookie cookie = new Cookie("JSESSIONID", null);
-                        cookie.setMaxAge(0);
-                        cookie.setPath("/");
-                        response.addCookie(cookie);
-                    }
-                } catch (Exception e) {
-                    log.warn("Could not clear session cookie", e);
-                }
-                
                 throw new UnauthorizedException("User no longer exists");
             }
             
@@ -172,6 +157,8 @@ public class AuthService {
     
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        log.info("Logging out user: {}", authentication.getName());
 
         if (authentication != null) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);

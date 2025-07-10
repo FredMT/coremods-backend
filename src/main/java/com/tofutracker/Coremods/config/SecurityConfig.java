@@ -9,10 +9,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,11 +30,14 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.session.jdbc.JdbcIndexedSessionRepository;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
-
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -43,9 +46,11 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JdbcIndexedSessionRepository sessionRepository;
 
-    public SecurityConfig(@Lazy CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(@Lazy CustomUserDetailsService userDetailsService, JdbcIndexedSessionRepository sessionRepository) {
         this.userDetailsService = userDetailsService;
+        this.sessionRepository = sessionRepository;
     }
 
     @Bean
@@ -70,49 +75,70 @@ public class SecurityConfig {
     }
 
     @Bean
+    public SpringSessionBackedSessionRegistry<?> sessionRegistry() {
+        return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers(
-                    "/auth/register",
-                    "/auth/login",
-                    "/auth/verify-email",
-                    "/auth/resend-verification",
-                    "/auth/forgot-password",
-                    "/auth/forgot-password/reset",
-                    "/auth/me",
-                    "/error"
-                ).permitAll()
-                .requestMatchers("/auth/reset-password").authenticated()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
-                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-            .logout(logout -> logout
-                .logoutUrl("/auth/logout")
-                .logoutSuccessHandler((req, res, auth) -> {
-                    res.setStatus(HttpServletResponse.SC_OK);
-                    res.setContentType("application/json");
-                })
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-            )
-            .sessionManagement(session -> session
-                .sessionFixation().changeSessionId()
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/auth/**")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            )
-            .securityContext(context -> context
-                .securityContextRepository(securityContextRepository())
-            )
-            .authenticationProvider(authenticationProvider());
+                .cors(Customizer.withDefaults())
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers(
+                                "/api/auth/register",
+                                "/api/auth/verify-email",
+                                "/api/auth/resend-verification",
+                                "/api/auth/forgot-password",
+                                "/api/auth/forgot-password/reset",
+                                "/api/auth/me",
+                                "/error"
+                        ).permitAll()
+                        .requestMatchers("/api/auth/reset-password").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler((req, res, auth) -> {
+                            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                        })
+                        .invalidateHttpSession(true)
+                        .deleteCookies("SESSION")
+                )
+                .sessionManagement(session -> session
+                        .sessionFixation().changeSessionId()
+                        .maximumSessions(1)
+                        .sessionRegistry(sessionRegistry())
+                        .maxSessionsPreventsLogin(false)
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/auth/**")
+                        .ignoringRequestMatchers("/api/admin/**") //TODO REMOVE
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                )
+                .securityContext(context -> context
+                        .securityContextRepository(securityContextRepository())
+                )
+                .authenticationProvider(authenticationProvider());
 
         return http.build();
     }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
 
     @Bean
     public JsonAuthenticationFilter jsonAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -127,11 +153,11 @@ public class SecurityConfig {
     public class JsonAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
         public JsonAuthenticationFilter() {
-            super(antMatcher(HttpMethod.POST, "/auth/login"));
+            super(request -> request.getServletPath().equals("/api/auth/login"));
         }
 
         @Override
-        public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) 
+        public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
                 throws AuthenticationException {
             try {
                 LoginRequest loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
@@ -145,8 +171,8 @@ public class SecurityConfig {
 
         @Override
         protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                jakarta.servlet.FilterChain chain, Authentication authResult) throws IOException, jakarta.servlet.ServletException {
-            
+                                                jakarta.servlet.FilterChain chain, Authentication authResult) throws IOException, jakarta.servlet.ServletException {
+
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);
             SecurityContextHolder.setContext(context);
@@ -159,15 +185,15 @@ public class SecurityConfig {
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (request, response, authentication) -> {
             request.getSession(true);
-            
+
             User user = (User) authentication.getPrincipal();
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json");
-            
+
             if (!user.isEmailVerified()) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write(String.format(
-                    "{\"message\":\"Email not verified. Please check your email for verification link.\"}"));
+                response.getWriter().write(
+                        "{\"message\":\"Email not verified. Please check your email for verification link.\"}");
             } else {
                 response.getWriter().write("{\"message\":\"Login successful\"}");
             }

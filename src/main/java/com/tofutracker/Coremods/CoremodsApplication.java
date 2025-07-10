@@ -14,12 +14,4 @@ public class CoremodsApplication {
 		SpringApplication.run(CoremodsApplication.class, args);
 	}
 
-	@Bean
-	public CommandLineRunner logTest() {
-		return args -> {
-			log.info("This is a test manual log that should go to the manual.log file");
-			log.error("This is a test error log that should go to the manual.log file");
-		};
-	}
-
 }

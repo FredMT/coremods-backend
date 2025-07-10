@@ -1,7 +1,9 @@
 package com.tofutracker.Coremods.services;
 
+import com.tofutracker.Coremods.config.enums.Role;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.repository.UserRepository;
+import com.tofutracker.Coremods.exception.RoleAlreadyAssignedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
+    private final SessionManagementService sessionManagementService;
 
     public void registerUser(String username, String email, String password) {
 
@@ -88,5 +91,27 @@ public class UserService {
         
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateUserRole(Long userId, Role newRole) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        
+        // Only update if the role is actually changing
+        if (user.getRole() != newRole) {
+            log.info("Updating role for user {} from {} to {}", user.getUsername(), user.getRole(), newRole);
+            
+            // Update the user's role
+            user.setRole(newRole);
+            userRepository.save(user);
+            
+            // Terminate all sessions for this user to force re-login with new permissions
+            int terminatedCount = sessionManagementService.terminateAllUserSessions(user.getUsername());
+            log.info("Terminated {} sessions for user {} after role update", terminatedCount, user.getUsername());
+        } else {
+            log.info("Role for user {} is already {}, no update needed", user.getUsername(), newRole);
+            throw new RoleAlreadyAssignedException("User already has role: " + newRole);
+        }
     }
 } 
