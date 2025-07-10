@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.services;
 
-import com.tofutracker.Coremods.dto.*;
+import com.tofutracker.Coremods.dto.ApiResponse;
 import com.tofutracker.Coremods.dto.requests.ForgotPasswordRequest;
 import com.tofutracker.Coremods.dto.requests.ForgotPasswordResetRequest;
 import com.tofutracker.Coremods.dto.requests.RegisterRequest;
@@ -9,7 +9,6 @@ import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,6 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -129,17 +126,8 @@ public class AuthService {
             }
             
             User user;
-            if (principal instanceof User) {
-                user = (User) principal;
-            } else {
-                UserDetails userDetails = (UserDetails) principal;
-                Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
-                if (userOpt.isEmpty()) {
-                    throw new UnauthorizedException("User not found");
-                }
-                user = userOpt.get();
-            }
-            
+            user = (User) principal;
+
             Optional<User> currentUser = userService.findById(user.getId());
             
             if (currentUser.isEmpty()) {
@@ -160,9 +148,7 @@ public class AuthService {
 
         log.info("Logging out user: {}", authentication.getName());
 
-        if (authentication != null) {
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
-        }
+        new SecurityContextLogoutHandler().logout(request, response, authentication);
 
         return ResponseEntity.ok(ApiResponse.success("Logout successful"));
     }
@@ -186,7 +172,7 @@ public class AuthService {
         try {
             Object principal = authentication.getPrincipal();
             
-            if (!(principal instanceof UserDetails)) {
+            if (!(principal instanceof UserDetails userDetails)) {
                 throw new UnauthorizedException("Invalid authentication");
             }
             
@@ -194,8 +180,8 @@ public class AuthService {
             if (principal instanceof User) {
                 user = (User) principal;
             } else {
-                UserDetails userDetails = (UserDetails) principal;
                 Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
+
                 if (userOpt.isEmpty()) {
                     throw new UnauthorizedException("User not found");
                 }

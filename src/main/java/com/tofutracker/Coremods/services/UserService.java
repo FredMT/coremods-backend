@@ -102,7 +102,6 @@ public class UserService {
         if (user.getRole() != newRole) {
             log.info("Updating role for user {} from {} to {}", user.getUsername(), user.getRole(), newRole);
             
-            // Update the user's role
             user.setRole(newRole);
             userRepository.save(user);
             
