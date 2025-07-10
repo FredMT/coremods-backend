@@ -116,6 +116,8 @@ Content-Type: application/json
 
 ## Milestones
 
-| Date       | Milestone                         |
-| ---------- | --------------------------------- |
-| 2025-06-30 | ✅ Session-based auth implemented |
+| Date       | Milestone                            |
+| ---------- | ------------------------------------ |
+| 2025-06-30 | ✅ Session-based auth implemented    |
+| 2025-07-08 | ✅ Roles and permissions implemented |
+| 2025-07-10 | ✅ Spring Session implemented        |
