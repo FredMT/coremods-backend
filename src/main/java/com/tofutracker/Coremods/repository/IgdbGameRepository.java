@@ -1,0 +1,9 @@
+package com.tofutracker.Coremods.repository;
+
+import com.tofutracker.Coremods.entity.IgdbGame;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface IgdbGameRepository extends JpaRepository<IgdbGame, Long> {
+} 

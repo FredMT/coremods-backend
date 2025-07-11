@@ -145,6 +145,16 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>11.10.1</version>
+                <configuration>
+                    <url>jdbc:postgresql://localhost:5432/coremods</url>
+                    <user>postgres</user>
+                    <password>postgres</password>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

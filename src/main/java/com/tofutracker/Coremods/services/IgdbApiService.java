@@ -9,7 +9,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,6 +19,7 @@ public class IgdbApiService {
     
     private final RestTemplate restTemplate;
     private final IgdbAuthService igdbAuthService;
+    private final IgdbCacheService igdbCacheService;
     
     @Value("${igdb.api.base-url}")
     private String igdbBaseUrl;
@@ -38,9 +38,17 @@ public class IgdbApiService {
                     entity,
                     SearchGameByNameResponse[].class);
             
-            List<SearchGameByNameResponse> games = Arrays.asList(response.getBody());
-            log.info("Found {} games for query: {}", games.size(), query);
-            return games;
+            SearchGameByNameResponse[] games = response.getBody();
+            if (games == null) {
+                return Collections.emptyList();
+            }
+            
+            List<SearchGameByNameResponse> gamesList = List.of(games);
+            log.info("Found {} games for query: {}", gamesList.size(), query);
+            
+            igdbCacheService.cacheGames(gamesList);
+            
+            return gamesList;
         } catch (Exception e) {
             log.error("Failed to search games for query: {}", query, e);
             return Collections.emptyList();
