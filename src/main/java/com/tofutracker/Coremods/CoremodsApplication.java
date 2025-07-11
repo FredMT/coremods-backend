@@ -1,12 +1,12 @@
 package com.tofutracker.Coremods;
 
+import com.tofutracker.Coremods.config.IgdbConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@Slf4j
+@EnableConfigurationProperties(IgdbConfig.class)
 public class CoremodsApplication {
 
 	public static void main(String[] args) {
