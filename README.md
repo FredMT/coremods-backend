@@ -121,3 +121,4 @@ Content-Type: application/json
 | 2025-06-30 | ✅ Session-based auth implemented    |
 | 2025-07-08 | ✅ Roles and permissions implemented |
 | 2025-07-10 | ✅ Spring Session implemented        |
+| 2025-07-11 | ✅ IGDB API integration implemented  |
