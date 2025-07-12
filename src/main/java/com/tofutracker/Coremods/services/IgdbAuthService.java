@@ -95,8 +95,9 @@ public class IgdbAuthService {
                 
                 return tokenResponse.getAccessToken();
             } else {
-                log.error("Failed to refresh IGDB access token: Empty response body");
-                throw new RuntimeException("Failed to refresh IGDB access token");
+                RuntimeException ex = new RuntimeException("Failed to refresh IGDB access token: Empty response body");
+                log.error("Failed to refresh IGDB access token: Empty response body", ex);
+                throw ex;
             }
         } catch (Exception e) {
             log.error("Failed to refresh IGDB access token", e);

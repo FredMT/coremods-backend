@@ -27,8 +27,9 @@ public class EmailService {
             );
             
             if (!emailSent) {
-                log.error("Failed to send verification email to: {}", user.getEmail());
-                throw new RuntimeException("Failed to send verification email");
+                RuntimeException ex = new RuntimeException("Failed to send verification email");
+                log.error("Failed to send verification email to: {}", user.getEmail(), ex);
+                throw ex;
             }
             
         } catch (Exception e) {
@@ -140,8 +141,9 @@ public class EmailService {
             );
             
             if (!emailSent) {
-                log.error("Failed to send password reset email to: {}", user.getEmail());
-                throw new RuntimeException("Failed to send password reset email");
+                RuntimeException ex = new RuntimeException("Failed to send password reset email");
+                log.error("Failed to send password reset email to: {}", user.getEmail(), ex);
+                throw ex;
             }
             
         } catch (Exception e) {
