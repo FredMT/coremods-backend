@@ -43,6 +43,10 @@ public class IgdbGame {
     @ToString.Exclude
     private Set<IgdbPlatform> platforms = new HashSet<>();
     
+    @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private Set<GameModCategory> modCategories = new HashSet<>();
+    
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -59,6 +63,16 @@ public class IgdbGame {
     public void removePlatform(IgdbPlatform platform) {
         this.platforms.remove(platform);
         platform.getGames().remove(this);
+    }
+    
+    public void addModCategory(GameModCategory category) {
+        this.modCategories.add(category);
+        category.setGame(this);
+    }
+    
+    public void removeModCategory(GameModCategory category) {
+        this.modCategories.remove(category);
+        category.setGame(null);
     }
 
     @Override

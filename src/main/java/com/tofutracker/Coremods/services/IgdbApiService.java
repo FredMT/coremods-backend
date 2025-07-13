@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.services;
 
+import com.tofutracker.Coremods.dto.igdb.GameSummaryResponse;
 import com.tofutracker.Coremods.dto.igdb.SearchGameByNameResponse;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class IgdbApiService {
     private String igdbBaseUrl;
     
     @RateLimiter(name = "igdb")
-    public List<SearchGameByNameResponse> searchGames(String query) {
+    public List<GameSummaryResponse> searchGames(String query) {
         log.info("Searching games with query: {}", query);
         
         String requestBody = buildGameSearchQuery(query);
@@ -48,7 +50,10 @@ public class IgdbApiService {
             
             igdbCacheService.cacheGames(gamesList);
             
-            return gamesList;
+            // Return only the simplified data to the frontend
+            return gamesList.stream()
+                    .map(SearchGameByNameResponse::toGameSummary)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Failed to search games for query: {}", query, e);
             return Collections.emptyList();

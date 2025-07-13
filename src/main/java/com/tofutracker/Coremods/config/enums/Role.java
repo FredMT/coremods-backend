@@ -40,6 +40,7 @@ public enum Role {
             // Moderator permissions
             MOD_APPROVE,      // Approve or decline mods
             MOD_DELETE,       // Delete mods
+            MOD_CATEGORY_APPROVE, // Approve or decline mod categories
             COMMENT_DELETE,   // Delete comments
             USER_BAN          // Ban users
         )
@@ -58,6 +59,7 @@ public enum Role {
             // All moderator permissions
             MOD_APPROVE,      // Approve or decline mods
             MOD_DELETE,       // Delete mods
+            MOD_CATEGORY_APPROVE, // Approve or decline mod categories
             COMMENT_DELETE,   // Delete comments
             USER_BAN,         // Ban users
             

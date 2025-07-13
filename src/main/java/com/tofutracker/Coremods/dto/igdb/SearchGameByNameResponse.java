@@ -73,4 +73,15 @@ public class SearchGameByNameResponse {
                 .min(Long::compare)
                 .orElse(null);
     }
+    
+    /**
+     * Converts this full response to a simplified GameSummaryResponse
+     * containing only id, name, and imageId
+     * 
+     * @return GameSummaryResponse with minimal game information
+     */
+    public GameSummaryResponse toGameSummary() {
+        String imageId = cover != null ? cover.getImageId() : null;
+        return new GameSummaryResponse(id, name, imageId);
+    }
 } 

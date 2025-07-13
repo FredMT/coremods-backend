@@ -12,6 +12,7 @@ public enum Permission {
     MOD_DOWNLOAD("mod:download"), // Download mods
     MOD_APPROVE("mod:approve"),   // Approve or decline mods
     MOD_DELETE("mod:delete"),     // Delete mods
+    MOD_CATEGORY_APPROVE("mod:category_approve"), // Approve or decline mod categories
     
     // Comment permissions
     COMMENT_CREATE("comment:create"),   // Create comments
