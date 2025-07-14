@@ -93,7 +93,7 @@ public class SecurityConfig {
                                 "/api/auth/me",
                                 "/error"
                         ).permitAll()
-                        .requestMatchers("/api/auth/reset-password").authenticated()
+                        .requestMatchers("/api/auth/reset-password", "/api/v1/mods/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
@@ -139,7 +139,6 @@ public class SecurityConfig {
         return source;
     }
 
-
     @Bean
     public JsonAuthenticationFilter jsonAuthenticationFilter(AuthenticationManager authenticationManager) {
         JsonAuthenticationFilter filter = new JsonAuthenticationFilter();
@@ -161,6 +160,7 @@ public class SecurityConfig {
                 throws AuthenticationException {
             try {
                 LoginRequest loginRequest = objectMapper.readValue(request.getInputStream(), LoginRequest.class);
+                request.setAttribute("rememberMe", loginRequest.isRememberMe());
                 UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsernameOrEmail(), loginRequest.getPassword());
                 return getAuthenticationManager().authenticate(authRequest);
