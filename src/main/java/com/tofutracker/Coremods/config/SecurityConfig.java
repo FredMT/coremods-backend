@@ -113,8 +113,7 @@ public class SecurityConfig {
                         .maxSessionsPreventsLogin(false)
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/**")
-                        .ignoringRequestMatchers("/api/admin/**") //TODO REMOVE
+                        .ignoringRequestMatchers("/api/**") // TODO REMOVE
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .securityContext(context -> context
