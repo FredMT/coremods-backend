@@ -36,11 +36,10 @@ public class ModUploadService {
         List<GameModCategory> categories = gameModCategoryRepository.findByGameId(gameId);
         
         List<GameCategoryResponse> categoryResponses = categories.stream()
-                .map(category -> GameCategoryResponse.builder()
-                        .id(category.getId())
-                        .name(category.getCategoryName())
-                        .approved(category.isApproved())
-                        .build())
+                .map(category -> new GameCategoryResponse(
+                        category.getId(),
+                        category.getCategoryName(),
+                        category.isApproved()))
                 .collect(Collectors.toList());
 
         return ApiResponse.success("Categories retrieved successfully", categoryResponses);
