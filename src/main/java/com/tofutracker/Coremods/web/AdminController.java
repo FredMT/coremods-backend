@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tofutracker.Coremods.config.enums.Role;
-import com.tofutracker.Coremods.dto.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.services.UserService;
 
 import lombok.RequiredArgsConstructor;

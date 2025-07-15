@@ -3,7 +3,7 @@ package com.tofutracker.Coremods.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tofutracker.Coremods.dto.requests.LoginRequest;
 import com.tofutracker.Coremods.entity.User;
-import com.tofutracker.Coremods.services.CustomUserDetailsService;
+import com.tofutracker.Coremods.services.auth.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;

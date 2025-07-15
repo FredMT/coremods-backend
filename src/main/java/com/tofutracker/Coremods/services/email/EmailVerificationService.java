@@ -1,8 +1,9 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.email;
 
 import com.tofutracker.Coremods.entity.EmailVerificationToken;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.repository.EmailVerificationTokenRepository;
+import com.tofutracker.Coremods.services.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;

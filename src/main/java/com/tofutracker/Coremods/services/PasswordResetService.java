@@ -4,6 +4,7 @@ import com.tofutracker.Coremods.entity.PasswordResetToken;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.repository.PasswordResetTokenRepository;
 import com.tofutracker.Coremods.repository.UserRepository;
+import com.tofutracker.Coremods.services.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

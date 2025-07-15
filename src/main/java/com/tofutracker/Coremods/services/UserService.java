@@ -4,6 +4,7 @@ import com.tofutracker.Coremods.config.enums.Role;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.repository.UserRepository;
 import com.tofutracker.Coremods.exception.RoleAlreadyAssignedException;
+import com.tofutracker.Coremods.services.email.EmailVerificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;

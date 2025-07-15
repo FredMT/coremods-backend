@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tofutracker.Coremods.config.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -41,6 +42,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,6 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.auth;
 
-import com.tofutracker.Coremods.dto.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.requests.ForgotPasswordRequest;
 import com.tofutracker.Coremods.dto.requests.ForgotPasswordResetRequest;
 import com.tofutracker.Coremods.dto.requests.RegisterRequest;
@@ -9,6 +9,9 @@ import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
+import com.tofutracker.Coremods.services.PasswordResetService;
+import com.tofutracker.Coremods.services.UserService;
+import com.tofutracker.Coremods.services.email.EmailVerificationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,10 +42,12 @@ public class IgdbGame {
         inverseJoinColumns = @JoinColumn(name = "platform_id")
     )
     @ToString.Exclude
+    @JsonIgnore
     private Set<IgdbPlatform> platforms = new HashSet<>();
     
     @OneToMany(mappedBy = "game", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
+    @JsonIgnore
     private Set<GameModCategory> modCategories = new HashSet<>();
     
     @CreationTimestamp

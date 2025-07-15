@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.dto;
+package com.tofutracker.Coremods.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

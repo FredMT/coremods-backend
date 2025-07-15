@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.config;
 
-import com.tofutracker.Coremods.services.EmailVerificationService;
+import com.tofutracker.Coremods.services.email.EmailVerificationService;
 import com.tofutracker.Coremods.services.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

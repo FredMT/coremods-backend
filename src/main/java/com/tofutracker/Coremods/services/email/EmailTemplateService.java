@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.email;
 
 import com.tofutracker.Coremods.entity.User;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.exception;
 
-import com.tofutracker.Coremods.dto.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;

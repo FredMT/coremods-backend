@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.email;
 
 import com.tofutracker.Coremods.entity.User;
 import lombok.RequiredArgsConstructor;

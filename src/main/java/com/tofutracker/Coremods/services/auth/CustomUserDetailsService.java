@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.auth;
 
 import com.tofutracker.Coremods.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

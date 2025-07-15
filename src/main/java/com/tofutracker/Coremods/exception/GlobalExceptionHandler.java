@@ -1,9 +1,10 @@
 package com.tofutracker.Coremods.exception;
 
-import com.tofutracker.Coremods.dto.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -152,6 +153,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.<Void>error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageNotWritableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotWritableException(HttpMessageNotWritableException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.<Void>error("Unable to serialize response data"));
     }
 
     @ExceptionHandler(Exception.class)

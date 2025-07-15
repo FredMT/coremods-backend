@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.email;
 
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;

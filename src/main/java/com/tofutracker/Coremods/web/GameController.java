@@ -1,8 +1,8 @@
 package com.tofutracker.Coremods.web;
 
-import com.tofutracker.Coremods.dto.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.igdb.GameSummaryResponse;
-import com.tofutracker.Coremods.services.IgdbApiService;
+import com.tofutracker.Coremods.services.igdb.IgdbApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

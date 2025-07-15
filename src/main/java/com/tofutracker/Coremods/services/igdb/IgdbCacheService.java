@@ -1,12 +1,11 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.igdb;
 
 import com.tofutracker.Coremods.dto.igdb.SearchGameByNameResponse;
 import com.tofutracker.Coremods.entity.IgdbGame;
 import com.tofutracker.Coremods.entity.IgdbPlatform;
-import com.tofutracker.Coremods.entity.GameModCategory;
 import com.tofutracker.Coremods.repository.IgdbGameRepository;
 import com.tofutracker.Coremods.repository.IgdbPlatformRepository;
-import com.tofutracker.Coremods.repository.GameModCategoryRepository;
+import com.tofutracker.Coremods.services.mods.PresetCategoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -23,7 +22,7 @@ public class IgdbCacheService {
 
     private final IgdbGameRepository gameRepository;
     private final IgdbPlatformRepository platformRepository;
-    private final GameModCategoryRepository gameModCategoryRepository;
+    private final PresetCategoryService presetCategoryService;
 
     /**
      * Asynchronously caches game data from IGDB API responses
@@ -74,11 +73,11 @@ public class IgdbCacheService {
 
         gameRepository.save(game);
         
-        GameModCategory miscCategory = new GameModCategory();
-        miscCategory.setGame(game);
-        miscCategory.setCategoryName("Miscellaneous");
-        miscCategory.setApproved(true);
-        gameModCategoryRepository.save(miscCategory);
+        // Create all preset categories for the game
+        if (!presetCategoryService.presetCategoriesExist(game)) {
+            presetCategoryService.createPresetCategoriesForGame(game);
+        }
+        
         log.info("Cached game: {}", game.getName());
     }
 

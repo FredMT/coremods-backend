@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.igdb;
 
 import com.tofutracker.Coremods.dto.igdb.GameSummaryResponse;
 import com.tofutracker.Coremods.dto.igdb.SearchGameByNameResponse;
