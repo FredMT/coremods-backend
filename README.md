@@ -116,9 +116,11 @@ Content-Type: application/json
 
 ## Milestones
 
-| Date       | Milestone                            |
-| ---------- | ------------------------------------ |
-| 2025-06-30 | ✅ Session-based auth implemented    |
-| 2025-07-08 | ✅ Roles and permissions implemented |
-| 2025-07-10 | ✅ Spring Session implemented        |
-| 2025-07-11 | ✅ IGDB API integration implemented  |
+| Date       | Milestone                                                         |
+| ---------- | ----------------------------------------------------------------- |
+| 2025-06-30 | ✅ Session-based auth implemented                                 |
+| 2025-07-08 | ✅ Roles and permissions implemented                              |
+| 2025-07-10 | ✅ Spring Session implemented                                     |
+| 2025-07-11 | ✅ IGDB API integration implemented                               |
+| 2025-07-15 | ✅ Mod details draft submission implemented                       |
+| 2025-07-16 | ✅ Mod image upload to DO spaces and YT video linking implemented |
