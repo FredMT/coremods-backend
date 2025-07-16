@@ -1,7 +1,6 @@
 package com.tofutracker.Coremods.repository;
 
 import com.tofutracker.Coremods.entity.YouTubeVideo;
-import com.tofutracker.Coremods.entity.GameMod;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,5 +18,5 @@ public interface YouTubeVideoRepository extends JpaRepository<YouTubeVideo, Long
     
     void deleteByGameModId(Long gameModId);
     
-    boolean existsByGameModIdAndYoutubeUrl(Long gameModId, String youtubeUrl);
+    boolean existsByGameModIdAndIdentifier(Long gameModId, String identifier);
 } 

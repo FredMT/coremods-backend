@@ -93,20 +93,15 @@ public class ModMediaService {
     }
     
     @Transactional
-    public YouTubeVideoResponse addYouTubeVideo(Long gameModId, YouTubeVideoRequest request, User currentUser) {
+    public List<YouTubeVideoResponse> addYouTubeVideos(Long gameModId, List<YouTubeVideoRequest> requests, User currentUser) {
         validateModOwnership(gameModId, currentUser);
         
-        log.info("Adding YouTube video for mod: {}, user: {}, URL: {}",
-                gameModId, currentUser.getUsername(), request.getYoutubeUrl());
+        log.info("Adding {} YouTube videos for mod: {}, user: {}",
+                requests.size(), gameModId, currentUser.getUsername());
         
-        YouTubeVideo video = youTubeVideoService.addYouTubeVideo(
-                gameModId,
-                request.getYoutubeUrl(),
-                request.getTitle(),
-                request.getDescription()
-        );
+        List<YouTubeVideo> videos = youTubeVideoService.addYouTubeVideos(gameModId, requests);
         
-        return YouTubeVideoResponse.from(video);
+        return YouTubeVideoResponse.from(videos);
     }
     
     @Transactional(readOnly = true)

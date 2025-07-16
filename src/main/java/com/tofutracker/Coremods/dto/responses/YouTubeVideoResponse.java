@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class YouTubeVideoResponse {
     private Long id;
-    private String youtubeUrl;
+    private String identifier;
     private String title;
     private String description;
     private Integer displayOrder;
@@ -23,7 +23,7 @@ public class YouTubeVideoResponse {
     public static YouTubeVideoResponse from(YouTubeVideo video) {
         return new YouTubeVideoResponse(
                 video.getId(),
-                video.getYoutubeUrl(),
+                video.getIdentifier(),
                 video.getTitle(),
                 video.getDescription(),
                 video.getDisplayOrder(),

@@ -30,9 +30,9 @@ public class YouTubeVideo {
     @NotNull(message = "GameMod is required")
     private GameMod gameMod;
     
-    @Column(name = "youtube_url", nullable = false)
-    @NotBlank(message = "YouTube URL is required")
-    private String youtubeUrl;
+    @Column(name = "identifier", nullable = false)
+    @NotBlank(message = "YouTube identifier is required")
+    private String identifier;
     
     @Column(name = "title", nullable = false)
     @NotBlank(message = "Video title is required")

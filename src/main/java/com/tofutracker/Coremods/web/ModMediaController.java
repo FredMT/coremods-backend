@@ -106,14 +106,14 @@ public class ModMediaController {
     }
 
     @PostMapping("/youtube-videos")
-    @Operation(summary = "Add YouTube video", description = "Add a YouTube video link to the mod")
-    public ResponseEntity<ApiResponse<YouTubeVideoResponse>> addYouTubeVideo(
+    @Operation(summary = "Add YouTube videos", description = "Add one or more YouTube video links to the mod")
+    public ResponseEntity<ApiResponse<List<YouTubeVideoResponse>>> addYouTubeVideos(
             @Parameter(description = "Game mod ID") @PathVariable Long gameModId,
-            @Valid @RequestBody YouTubeVideoRequest request,
+            @Valid @RequestBody List<YouTubeVideoRequest> requests,
             @AuthenticationPrincipal User currentUser) {
 
-        YouTubeVideoResponse videoResponse = modMediaService.addYouTubeVideo(gameModId, request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("YouTube video added successfully", videoResponse));
+        List<YouTubeVideoResponse> videoResponses = modMediaService.addYouTubeVideos(gameModId, requests, currentUser);
+        return ResponseEntity.ok(ApiResponse.success("YouTube videos added successfully", videoResponses));
     }
 
     @GetMapping("/youtube-videos")

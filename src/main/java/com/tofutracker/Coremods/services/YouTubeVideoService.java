@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
+import com.tofutracker.Coremods.dto.requests.YouTubeVideoRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -28,30 +30,40 @@ public class YouTubeVideoService {
     );
 
     @Transactional
-    public YouTubeVideo addYouTubeVideo(Long gameModId, String youtubeUrl, String title, String description) {
+    public List<YouTubeVideo> addYouTubeVideos(Long gameModId, List<YouTubeVideoRequest> videoRequests) {
         GameMod gameMod = findGameModById(gameModId);
-        validateYouTubeUrl(youtubeUrl);
-        validateTitle(title);
-
-        if (youTubeVideoRepository.existsByGameModIdAndYoutubeUrl(gameModId, youtubeUrl)) {
-            throw new BadRequestException("YouTube video URL already exists for this mod");
+        
+        for (YouTubeVideoRequest request : videoRequests) {
+            validateYouTubeUrl(request.getYoutubeUrl());
+            validateTitle(request.getTitle());
+            
+            String identifier = extractYouTubeVideoId(request.getYoutubeUrl());
+            
+            if (youTubeVideoRepository.existsByGameModIdAndIdentifier(gameModId, identifier)) {
+                throw new BadRequestException("YouTube video already exists for this mod: " + identifier);
+            }
         }
-
-        long existingCount = youTubeVideoRepository.countByGameModId(gameModId);
-        int displayOrder = (int) (existingCount + 1);
-
-        YouTubeVideo youTubeVideo = YouTubeVideo.builder()
-                .gameMod(gameMod)
-                .youtubeUrl(youtubeUrl)
-                .title(title)
-                .description(description)
-                .displayOrder(displayOrder)
-                .build();
-
-        YouTubeVideo savedVideo = youTubeVideoRepository.save(youTubeVideo);
-        log.info("YouTube video added successfully for mod: {}, URL: {}", gameModId, youtubeUrl);
-
-        return savedVideo;
+        
+        List<YouTubeVideo> videosToSave = new ArrayList<>();
+        
+        for (YouTubeVideoRequest request : videoRequests) {
+            String identifier = extractYouTubeVideoId(request.getYoutubeUrl());
+            
+            YouTubeVideo youTubeVideo = YouTubeVideo.builder()
+                    .gameMod(gameMod)
+                    .identifier(identifier)
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .displayOrder(request.getDisplayOrder())
+                    .build();
+            
+            videosToSave.add(youTubeVideo);
+        }
+        
+        List<YouTubeVideo> savedVideos = youTubeVideoRepository.saveAll(videosToSave);
+        log.info("Added {} YouTube videos for mod: {}", savedVideos.size(), gameModId);
+        
+        return savedVideos;
     }
 
     @Transactional
@@ -101,6 +113,28 @@ public class YouTubeVideoService {
         if (!YOUTUBE_URL_PATTERN.matcher(youtubeUrl).matches()) {
             throw new BadRequestException("Invalid YouTube URL format");
         }
+    }
+
+    private String extractYouTubeVideoId(String youtubeUrl) {
+        // Handle youtube.com/watch?v=ID format
+        if (youtubeUrl.contains("youtube.com/watch") && youtubeUrl.contains("v=")) {
+            Pattern pattern = Pattern.compile("v=([^&]+)");
+            java.util.regex.Matcher matcher = pattern.matcher(youtubeUrl);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+        
+        // Handle youtu.be/ID format
+        if (youtubeUrl.contains("youtu.be/")) {
+            Pattern pattern = Pattern.compile("youtu\\.be/([^?&]+)");
+            java.util.regex.Matcher matcher = pattern.matcher(youtubeUrl);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+        
+        throw new BadRequestException("Unable to extract YouTube video ID from URL: " + youtubeUrl);
     }
 
     private void validateTitle(String title) {
