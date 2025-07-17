@@ -95,7 +95,7 @@ public class SecurityConfig {
                                 "/api/auth/me",
                                 "/error")
                         .permitAll()
-                        .requestMatchers("/api/auth/reset-password", "/api/v1/mods/**", "/api/v1/comments/**")
+                        .requestMatchers("/api/auth/reset-password")
                         .authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
