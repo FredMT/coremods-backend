@@ -35,3 +35,5 @@ build/
 application.properties
 /logs
 .cursor
+.DS_Store
+mvnw
