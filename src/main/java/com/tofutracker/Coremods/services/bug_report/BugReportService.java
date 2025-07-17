@@ -1,8 +1,11 @@
 package com.tofutracker.Coremods.services.bug_report;
 
+import com.tofutracker.Coremods.config.enums.BugReportPriority;
 import com.tofutracker.Coremods.config.enums.BugReportStatus;
 import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportPriorityRequest;
 import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
+import com.tofutracker.Coremods.dto.responses.BugReportPriorityUpdateResponse;
 import com.tofutracker.Coremods.dto.responses.BugReportResponse;
 import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.BugReport;
@@ -87,6 +90,35 @@ public class BugReportService {
         return BugReportStatusUpdateResponse.builder()
                 .bugReportId(updatedBugReport.getId())
                 .status(updatedBugReport.getStatus())
+                .build();
+    }
+
+    @Transactional
+    public BugReportPriorityUpdateResponse updateBugReportPriority(Long bugReportId,
+            UpdateBugReportPriorityRequest request, User user) {
+        validateUserForOperation(user);
+
+        BugReport bugReport = bugReportRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bug report not found with id: " + bugReportId));
+
+        GameMod mod = bugReport.getMod();
+        if (!Objects.equals(mod.getAuthor().getId(), user.getId())) {
+            throw new ForbiddenException("Only the mod author can update bug report priority");
+        }
+
+        BugReportPriority newPriority = BugReportPriority.valueOf(request.getPriority());
+
+        if (newPriority == bugReport.getPriority()) {
+            throw new BadRequestException("Bug report priority is already " + newPriority);
+        }
+
+        bugReport.setPriority(newPriority);
+
+        BugReport updatedBugReport = bugReportRepository.save(bugReport);
+
+        return BugReportPriorityUpdateResponse.builder()
+                .bugReportId(updatedBugReport.getId())
+                .priority(updatedBugReport.getPriority())
                 .build();
     }
 

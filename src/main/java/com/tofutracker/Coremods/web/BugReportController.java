@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportPriorityRequest;
 import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.BugReportPriorityUpdateResponse;
 import com.tofutracker.Coremods.dto.responses.BugReportResponse;
 import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.User;
@@ -59,5 +61,16 @@ public class BugReportController {
         BugReportStatusUpdateResponse response = bugReportService.updateBugReportStatus(bugReportId, request,
                 currentUser);
         return ResponseEntity.ok(ApiResponse.success("Bug report status updated successfully", response));
+    }
+
+    @PutMapping("/{bugReportId}/priority")
+    public ResponseEntity<ApiResponse<BugReportPriorityUpdateResponse>> updateBugReportPriority(
+            @PathVariable Long bugReportId,
+            @Valid @RequestBody UpdateBugReportPriorityRequest request,
+            @AuthenticationPrincipal User currentUser) {
+
+        BugReportPriorityUpdateResponse response = bugReportService.updateBugReportPriority(bugReportId, request,
+                currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Bug report priority updated successfully", response));
     }
 }
