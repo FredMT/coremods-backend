@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,5 +73,13 @@ public class BugReportController {
         BugReportPriorityUpdateResponse response = bugReportService.updateBugReportPriority(bugReportId, request,
                 currentUser);
         return ResponseEntity.ok(ApiResponse.success("Bug report priority updated successfully", response));
+    }
+
+    @DeleteMapping("/{bugReportId}")
+    public ResponseEntity<ApiResponse<Void>> deleteBugReport(@PathVariable Long bugReportId,
+            @AuthenticationPrincipal User currentUser) {
+
+        bugReportService.deleteBugReport(bugReportId, currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Bug report deleted successfully"));
     }
 }

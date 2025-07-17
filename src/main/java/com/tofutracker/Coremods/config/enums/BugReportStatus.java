@@ -13,7 +13,8 @@ public enum BugReportStatus {
     DUPLICATES("Duplicates"),
     NOT_A_BUG("Not a bug"),
     WONT_FIX("Won't fix"),
-    NEED_MORE_INFO("Need more info");
+    NEED_MORE_INFO("Need more info"),
+    CLOSED("Closed");
 
     @Getter
     private final String displayName;

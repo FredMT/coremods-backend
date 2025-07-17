@@ -122,6 +122,20 @@ public class BugReportService {
                 .build();
     }
 
+    @Transactional
+    public void deleteBugReport(Long bugReportId, User user) {
+
+        BugReport bugReport = bugReportRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bug report not found with id: " + bugReportId));
+
+        GameMod mod = bugReport.getMod();
+        if (!Objects.equals(mod.getAuthor().getId(), user.getId())) {
+            throw new ForbiddenException("Only the mod author can delete bug report");
+        }
+
+        bugReportRepository.delete(bugReport);
+    }
+
     private void validateUserForOperation(User user) {
         if (user == null) {
             throw new UnauthorizedException("User must be authenticated");
