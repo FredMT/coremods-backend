@@ -8,13 +8,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.BugReportResponse;
+import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.bug_report.BugReportService;
 
@@ -45,5 +48,16 @@ public class BugReportController {
         BugReportResponse bugReport = bugReportService.createBugReport(modId, request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Bug report created successfully", bugReport));
+    }
+
+    @PutMapping("/{bugReportId}/status")
+    public ResponseEntity<ApiResponse<BugReportStatusUpdateResponse>> updateBugReportStatus(
+            @PathVariable Long bugReportId,
+            @Valid @RequestBody UpdateBugReportStatusRequest request,
+            @AuthenticationPrincipal User currentUser) {
+
+        BugReportStatusUpdateResponse response = bugReportService.updateBugReportStatus(bugReportId, request,
+                currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Bug report status updated successfully", response));
     }
 }

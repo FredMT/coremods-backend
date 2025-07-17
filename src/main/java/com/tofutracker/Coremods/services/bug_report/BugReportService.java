@@ -1,10 +1,15 @@
 package com.tofutracker.Coremods.services.bug_report;
 
+import com.tofutracker.Coremods.config.enums.BugReportStatus;
 import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
 import com.tofutracker.Coremods.dto.responses.BugReportResponse;
+import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.BugReport;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.User;
+import com.tofutracker.Coremods.exception.BadRequestException;
+import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
 import com.tofutracker.Coremods.repository.BugReportRepository;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,6 +59,35 @@ public class BugReportService {
         return bugReportRepository.findByModIdOrderByCreatedAtDesc(modId).stream()
                 .map(BugReportResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BugReportStatusUpdateResponse updateBugReportStatus(Long bugReportId, UpdateBugReportStatusRequest request,
+            User user) {
+        validateUserForOperation(user);
+
+        BugReport bugReport = bugReportRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bug report not found with id: " + bugReportId));
+
+        GameMod mod = bugReport.getMod();
+        if (!Objects.equals(mod.getAuthor().getId(), user.getId())) {
+            throw new ForbiddenException("Only the mod author can update bug report status");
+        }
+
+        BugReportStatus newStatus = BugReportStatus.valueOf(request.getStatus());
+
+        if (newStatus == bugReport.getStatus()) {
+            throw new BadRequestException("Bug report status is already " + newStatus);
+        }
+
+        bugReport.setStatus(newStatus);
+
+        BugReport updatedBugReport = bugReportRepository.save(bugReport);
+
+        return BugReportStatusUpdateResponse.builder()
+                .bugReportId(updatedBugReport.getId())
+                .status(updatedBugReport.getStatus())
+                .build();
     }
 
     private void validateUserForOperation(User user) {
