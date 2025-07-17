@@ -48,7 +48,8 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JdbcIndexedSessionRepository sessionRepository;
 
-    public SecurityConfig(@Lazy CustomUserDetailsService userDetailsService, JdbcIndexedSessionRepository sessionRepository) {
+    public SecurityConfig(@Lazy CustomUserDetailsService userDetailsService,
+            JdbcIndexedSessionRepository sessionRepository) {
         this.userDetailsService = userDetailsService;
         this.sessionRepository = sessionRepository;
     }
@@ -80,7 +81,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager)
+            throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authz -> authz
@@ -91,11 +93,11 @@ public class SecurityConfig {
                                 "/api/auth/forgot-password",
                                 "/api/auth/forgot-password/reset",
                                 "/api/auth/me",
-                                "/error"
-                        ).permitAll()
-                        .requestMatchers("/api/auth/reset-password", "/api/v1/mods/**").authenticated()
-                        .anyRequest().permitAll()
-                )
+                                "/error")
+                        .permitAll()
+                        .requestMatchers("/api/auth/reset-password", "/api/v1/mods/**", "/api/v1/comments/**")
+                        .authenticated()
+                        .anyRequest().permitAll())
                 .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
@@ -104,21 +106,17 @@ public class SecurityConfig {
                             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         })
                         .invalidateHttpSession(true)
-                        .deleteCookies("SESSION")
-                )
+                        .deleteCookies("SESSION"))
                 .sessionManagement(session -> session
                         .sessionFixation().changeSessionId()
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry())
-                        .maxSessionsPreventsLogin(false)
-                )
+                        .maxSessionsPreventsLogin(false))
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**") // TODO REMOVE
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                )
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .securityContext(context -> context
-                        .securityContextRepository(securityContextRepository())
-                )
+                        .securityContextRepository(securityContextRepository()))
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
@@ -170,7 +168,8 @@ public class SecurityConfig {
 
         @Override
         protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                                jakarta.servlet.FilterChain chain, Authentication authResult) throws IOException, jakarta.servlet.ServletException {
+                jakarta.servlet.FilterChain chain, Authentication authResult)
+                throws IOException, jakarta.servlet.ServletException {
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authResult);

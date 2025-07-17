@@ -14,59 +14,55 @@ import static com.tofutracker.Coremods.config.enums.Permission.*;
 public enum Role {
 
     USER(
-        Set.of(
-            // Mod permissions
-            MOD_VIEW,         // View mods
-            MOD_UPLOAD,       // Upload mods (pending approval)
-            MOD_DOWNLOAD,     // Download mods
-            
-            // Comment permissions
-            COMMENT_CREATE,   // Create comments
-            COMMENT_VIEW,     // View comments
-            COMMENT_REPLY     // Reply to comments
-        )
-    ),
-    
+            Set.of(// Mod permissions
+                    MOD_VIEW, // View mods
+                    MOD_UPLOAD, // Upload mods (pending approval)
+                    MOD_DOWNLOAD, // Download mods
+
+                    // Comment permissions
+                    COMMENT_CREATE, // Create comments
+                    COMMENT_VIEW, // View comments
+                    COMMENT_REPLY// Reply to comments
+            )),
+
     MODERATOR(
-        Set.of(
-            // User permissions - all user permissions plus:
-            MOD_VIEW,         // View mods
-            MOD_UPLOAD,       // Upload mods (pending approval)
-            MOD_DOWNLOAD,     // Download mods
-            COMMENT_CREATE,   // Create comments
-            COMMENT_VIEW,     // View comments
-            COMMENT_REPLY,    // Reply to comments
-            
-            // Moderator permissions
-            MOD_APPROVE,      // Approve or decline mods
-            MOD_DELETE,       // Delete mods
-            MOD_CATEGORY_APPROVE, // Approve or decline mod categories
-            COMMENT_DELETE,   // Delete comments
-            USER_BAN          // Ban users
-        )
-    ),
-    
+            Set.of(// User permissions - all user permissions plus:
+                    MOD_VIEW, // View mods
+                    MOD_UPLOAD, // Upload mods (pending approval)
+                    MOD_DOWNLOAD, // Download mods
+                    COMMENT_CREATE, // Create comments
+                    COMMENT_VIEW, // View comments
+                    COMMENT_REPLY, // Reply to comments
+                    COMMENT_DELETE, // Delete comments
+
+                    // Moderator permissions
+                    MOD_APPROVE, // Approve or decline mods
+                    MOD_DELETE, // Delete mods
+                    MOD_CATEGORY_APPROVE, // Approve or decline mod categories
+
+                    USER_BAN// Ban users
+            )),
+
     ADMIN(
-        Set.of(
-            // All user permissions
-            MOD_VIEW,         // View mods
-            MOD_UPLOAD,       // Upload mods (pending approval)
-            MOD_DOWNLOAD,     // Download mods
-            COMMENT_CREATE,   // Create comments
-            COMMENT_VIEW,     // View comments
-            COMMENT_REPLY,    // Reply to comments
-            
-            // All moderator permissions
-            MOD_APPROVE,      // Approve or decline mods
-            MOD_DELETE,       // Delete mods
-            MOD_CATEGORY_APPROVE, // Approve or decline mod categories
-            COMMENT_DELETE,   // Delete comments
-            USER_BAN,         // Ban users
-            
-            // Admin-only permissions
-            USER_UPDATE_ROLE  // Update user roles
-        )
-    );
+            Set.of(// All user permissions
+                    MOD_VIEW, // View mods
+                    MOD_UPLOAD, // Upload mods (pending approval)
+                    MOD_DOWNLOAD, // Download mods
+                    COMMENT_CREATE, // Create comments
+                    COMMENT_VIEW, // View comments
+                    COMMENT_REPLY, // Reply to comments
+                    COMMENT_DELETE, // Delete comments
+
+                    // All moderator permissions
+                    MOD_APPROVE, // Approve or decline mods
+                    MOD_DELETE, // Delete mods
+                    MOD_CATEGORY_APPROVE, // Approve or decline mod categories
+
+                    USER_BAN, // Ban users
+
+                    // Admin-only permissions
+                    USER_UPDATE_ROLE// Update user roles
+            ));
 
     @Getter
     private final Set<Permission> permissions;
