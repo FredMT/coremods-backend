@@ -126,3 +126,4 @@ Content-Type: application/json
 | 2025-07-16 | ✅ Mod image upload to DO spaces and YT video linking implemented |
 | 2025-07-17 | ✅ Mod comment system implemented                                 |
 | 2025-07-17 | ✅ Bug tracker system implemented                                 |
+| 2025-07-18 | ✅ Mod tagging and endorsement system implemented                 |
