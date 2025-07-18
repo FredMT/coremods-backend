@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.web;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,9 +33,8 @@ public class AdminController {
         log.info("Attempting to update role for user ID: {} to {}", userId, role);
 
         userService.updateUserRole(userId, role);
-        return ResponseEntity.ok(
-                ApiResponse.success("User role updated successfully. User's sessions have been terminated.")
-        );
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("User role updated successfully. User's sessions have been terminated."));
 
     }
-} 
+}

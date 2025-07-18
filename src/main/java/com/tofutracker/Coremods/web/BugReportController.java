@@ -39,7 +39,8 @@ public class BugReportController {
     @GetMapping("/{modId}")
     public ResponseEntity<ApiResponse<List<BugReportResponse>>> getBugReportsByMod(@PathVariable Long modId) {
         List<BugReportResponse> bugReports = bugReportService.getBugReportsByModId(modId);
-        return ResponseEntity.ok(ApiResponse.success("Bug reports retrieved successfully", bugReports));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Bug reports retrieved successfully", bugReports));
     }
 
     @PostMapping("/{modId}")
@@ -61,7 +62,8 @@ public class BugReportController {
 
         BugReportStatusUpdateResponse response = bugReportService.updateBugReportStatus(bugReportId, request,
                 currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Bug report status updated successfully", response));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Bug report status updated successfully", response));
     }
 
     @PutMapping("/{bugReportId}/priority")
@@ -72,7 +74,8 @@ public class BugReportController {
 
         BugReportPriorityUpdateResponse response = bugReportService.updateBugReportPriority(bugReportId, request,
                 currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Bug report priority updated successfully", response));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Bug report priority updated successfully", response));
     }
 
     @DeleteMapping("/{bugReportId}")
@@ -80,6 +83,6 @@ public class BugReportController {
             @AuthenticationPrincipal User currentUser) {
 
         bugReportService.deleteBugReport(bugReportId, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Bug report deleted successfully"));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Bug report deleted successfully"));
     }
 }

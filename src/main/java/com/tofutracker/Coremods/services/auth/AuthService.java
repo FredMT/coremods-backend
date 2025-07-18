@@ -219,7 +219,7 @@ public class AuthService {
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Validation failed", errors));
         }
 
@@ -227,14 +227,15 @@ public class AuthService {
             Optional<User> userOpt = userService.findByEmail(request.getEmail());
 
             if (userOpt.isEmpty()) {
-                return ResponseEntity.ok(ApiResponse
-                        .success("If an account with that email exists, a password reset link has been sent"));
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(ApiResponse
+                                .success("If an account with that email exists, a password reset link has been sent"));
             }
 
             User user = userOpt.get();
             passwordResetService.generatePasswordResetToken(user);
 
-            return ResponseEntity.ok(
+            return ResponseEntity.status(HttpStatus.OK).body(
                     ApiResponse.success("If an account with that email exists, a password reset link has been sent"));
 
         } catch (Exception e) {
@@ -249,7 +250,7 @@ public class AuthService {
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Validation failed", errors));
         }
 

@@ -87,7 +87,8 @@ public class ModTagService {
 
         modTagVoteRepository.save(modTagVote);
 
-        return ResponseEntity.ok(ApiResponse.success("Tag voted successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tag voted successfully"));
     }
 
     @Transactional
@@ -107,7 +108,8 @@ public class ModTagService {
 
         modTagVoteRepository.delete(modTagVote);
 
-        return ResponseEntity.ok(ApiResponse.success("Tag unvoted successfully"));
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .body(ApiResponse.success("Tag unvoted successfully"));
     }
 
     private String normalizeTag(String tag) {

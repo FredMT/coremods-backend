@@ -3,6 +3,8 @@ package com.tofutracker.Coremods.web;
 import java.util.List;
 
 import com.tofutracker.Coremods.dto.requests.mods.comments.ModCommentUpdateRequest;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,22 +39,23 @@ public class CommentController {
             @Valid @RequestBody ModCommentRequest request, @AuthenticationPrincipal User currentUser) {
 
         ModCommentResponse response = modCommentService.createComment(gameModId, request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Comment created successfully", response));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Comment created successfully", response));
     }
 
     @GetMapping("/mods/{gameModId}")
     public ResponseEntity<ApiResponse<List<ModCommentResponse>>> getModComments(@PathVariable Long gameModId) {
 
         List<ModCommentResponse> comments = modCommentService.getCommentsByModId(gameModId);
-        return ResponseEntity.ok(ApiResponse.success("Comments retrieved successfully", comments));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Comments retrieved successfully", comments));
     }
 
     @PutMapping("/mods/{commentId}")
     public ResponseEntity<ApiResponse<ModCommentResponse>> updateComment(@PathVariable Long commentId,
-                                                                         @Valid @RequestBody ModCommentUpdateRequest request, @AuthenticationPrincipal User currentUser) {
+            @Valid @RequestBody ModCommentUpdateRequest request, @AuthenticationPrincipal User currentUser) {
 
         ModCommentResponse response = modCommentService.updateComment(commentId, request, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Comment updated successfully", response));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Comment updated successfully", response));
     }
 
     @DeleteMapping("/mods/{commentId}")
@@ -60,6 +63,6 @@ public class CommentController {
             @AuthenticationPrincipal User currentUser) {
 
         modCommentService.deleteComment(commentId, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Comment deleted successfully"));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Comment deleted successfully"));
     }
 }
