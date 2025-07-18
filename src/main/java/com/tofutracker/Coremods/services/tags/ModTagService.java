@@ -1,15 +1,23 @@
 package com.tofutracker.Coremods.services.tags;
 
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.mods.tags.CreateModTagResponse;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.ModTag;
+import com.tofutracker.Coremods.entity.ModTagVote;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
 import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ModTagRepository;
+import com.tofutracker.Coremods.repository.ModTagVoteRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +30,10 @@ public class ModTagService {
 
     private final ModTagRepository modTagRepository;
     private final GameModRepository gameModRepository;
+    private final ModTagVoteRepository modTagVoteRepository;
 
     @Transactional
-    public ModTag createTag(Long modId, String tag, User user) {
+    public ResponseEntity<ApiResponse<CreateModTagResponse>> createTag(Long modId, String tag, User user) {
         validateUserForOperation(user);
 
         GameMod mod = gameModRepository.findById(modId)
@@ -48,7 +57,57 @@ public class ModTagService {
 
         modTagRepository.save(modTag);
 
-        return modTag;
+        CreateModTagResponse response = CreateModTagResponse.fromEntity(modTag);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tag created successfully", response));
+    }
+
+    @Transactional
+    public ResponseEntity<ApiResponse<Void>> voteForModTag(Long modId, Long tagId, User user) {
+        validateUserForOperation(user);
+
+        gameModRepository.findById(modId)
+                .orElseThrow(() -> new ResourceNotFoundException("Mod not found with id: " + modId));
+
+        ModTag modTag = modTagRepository.findById(tagId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Tag not found with id: " + tagId + " for mod with id: " + modId));
+
+        Optional<ModTagVote> existingVote = modTagVoteRepository.findByModTagIdAndUserId(tagId, user.getId());
+
+        if (existingVote.isPresent()) {
+            throw new BadRequestException("You have already voted for this tag");
+        }
+
+        ModTagVote modTagVote = ModTagVote.builder()
+                .modTag(modTag)
+                .user(user)
+                .build();
+
+        modTagVoteRepository.save(modTagVote);
+
+        return ResponseEntity.ok(ApiResponse.success("Tag voted successfully"));
+    }
+
+    @Transactional
+    public ResponseEntity<ApiResponse<Void>> deleteVoteForTag(Long modId, Long tagId, User user) {
+        validateUserForOperation(user);
+
+        gameModRepository.findById(modId)
+                .orElseThrow(() -> new ResourceNotFoundException("Mod not found with id: " + modId));
+
+        modTagRepository.findById(tagId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Tag not found with id: " + tagId + " for mod with id: " + modId));
+
+        ModTagVote modTagVote = modTagVoteRepository.findByModTagIdAndUserId(tagId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Vote not found for tag with id: " + tagId + " and user with id: " + user.getId()));
+
+        modTagVoteRepository.delete(modTagVote);
+
+        return ResponseEntity.ok(ApiResponse.success("Tag unvoted successfully"));
     }
 
     private String normalizeTag(String tag) {

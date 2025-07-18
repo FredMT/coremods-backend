@@ -2,12 +2,12 @@ package com.tofutracker.Coremods.services.bug_report;
 
 import com.tofutracker.Coremods.config.enums.BugReportPriority;
 import com.tofutracker.Coremods.config.enums.BugReportStatus;
-import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
-import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportPriorityRequest;
-import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
-import com.tofutracker.Coremods.dto.responses.BugReportPriorityUpdateResponse;
-import com.tofutracker.Coremods.dto.responses.BugReportResponse;
-import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportPriorityRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportStatusRequest;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportPriorityUpdateResponse;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportResponse;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.BugReport;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.User;

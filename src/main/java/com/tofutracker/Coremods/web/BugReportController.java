@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tofutracker.Coremods.dto.requests.bug_report.CreateBugReportRequest;
-import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportPriorityRequest;
-import com.tofutracker.Coremods.dto.requests.bug_report.UpdateBugReportStatusRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportPriorityRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportStatusRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
-import com.tofutracker.Coremods.dto.responses.BugReportPriorityUpdateResponse;
-import com.tofutracker.Coremods.dto.responses.BugReportResponse;
-import com.tofutracker.Coremods.dto.responses.BugReportStatusUpdateResponse;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportPriorityUpdateResponse;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportResponse;
+import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.bug_report.BugReportService;
 

@@ -1,9 +1,9 @@
 package com.tofutracker.Coremods.web;
 
-import com.tofutracker.Coremods.dto.requests.ForgotPasswordRequest;
-import com.tofutracker.Coremods.dto.requests.ForgotPasswordResetRequest;
-import com.tofutracker.Coremods.dto.requests.RegisterRequest;
-import com.tofutracker.Coremods.dto.requests.ResetPasswordRequest;
+import com.tofutracker.Coremods.dto.requests.auth.ForgotPasswordRequest;
+import com.tofutracker.Coremods.dto.requests.auth.ForgotPasswordResetRequest;
+import com.tofutracker.Coremods.dto.requests.auth.RegisterRequest;
+import com.tofutracker.Coremods.dto.requests.auth.ResetPasswordRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.services.auth.AuthService;
 

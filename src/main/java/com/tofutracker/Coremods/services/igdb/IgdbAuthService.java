@@ -1,7 +1,7 @@
 package com.tofutracker.Coremods.services.igdb;
 
 import com.tofutracker.Coremods.config.IgdbConfig;
-import com.tofutracker.Coremods.dto.responses.TwitchTokenResponse;
+import com.tofutracker.Coremods.dto.responses.auth.igdb.TwitchTokenResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;

@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.services.mods;
 
-import com.tofutracker.Coremods.dto.requests.ModDetailsRequest;
+import com.tofutracker.Coremods.dto.requests.mods.upload_mod.ModDetailsRequest;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.GameModCategory;
 import com.tofutracker.Coremods.entity.IgdbGame;

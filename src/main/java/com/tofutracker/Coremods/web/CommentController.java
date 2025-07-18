@@ -2,6 +2,7 @@ package com.tofutracker.Coremods.web;
 
 import java.util.List;
 
+import com.tofutracker.Coremods.dto.requests.mods.comments.ModCommentUpdateRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,10 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tofutracker.Coremods.dto.requests.CommentUpdateRequest;
-import com.tofutracker.Coremods.dto.requests.ModCommentRequest;
+import com.tofutracker.Coremods.dto.requests.mods.comments.ModCommentRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
-import com.tofutracker.Coremods.dto.responses.ModCommentResponse;
+import com.tofutracker.Coremods.dto.responses.mods.comments.ModCommentResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.ModCommentService;
 
@@ -49,7 +49,7 @@ public class CommentController {
 
     @PutMapping("/mods/{commentId}")
     public ResponseEntity<ApiResponse<ModCommentResponse>> updateComment(@PathVariable Long commentId,
-            @Valid @RequestBody CommentUpdateRequest request, @AuthenticationPrincipal User currentUser) {
+                                                                         @Valid @RequestBody ModCommentUpdateRequest request, @AuthenticationPrincipal User currentUser) {
 
         ModCommentResponse response = modCommentService.updateComment(commentId, request, currentUser);
         return ResponseEntity.ok(ApiResponse.success("Comment updated successfully", response));

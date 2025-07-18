@@ -1,8 +1,8 @@
 package com.tofutracker.Coremods.web;
 
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
-import com.tofutracker.Coremods.dto.responses.GameCategoryResponse;
-import com.tofutracker.Coremods.dto.requests.ModDetailsRequest;
+import com.tofutracker.Coremods.dto.responses.mods.upload_mod.GameCategoryResponse;
+import com.tofutracker.Coremods.dto.requests.mods.upload_mod.ModDetailsRequest;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.mods.ModUploadService;
 import lombok.RequiredArgsConstructor;

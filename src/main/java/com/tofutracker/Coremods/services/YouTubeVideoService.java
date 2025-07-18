@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.ArrayList;
-import com.tofutracker.Coremods.dto.requests.YouTubeVideoRequest;
+import com.tofutracker.Coremods.dto.requests.mods.media.YouTubeVideoRequest;
 
 @Service
 @RequiredArgsConstructor

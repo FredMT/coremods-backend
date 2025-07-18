@@ -1,12 +1,12 @@
 package com.tofutracker.Coremods.web;
 
-import com.tofutracker.Coremods.dto.requests.ImageUpdateRequest;
-import com.tofutracker.Coremods.dto.requests.YouTubeVideoRequest;
-import com.tofutracker.Coremods.dto.requests.YouTubeVideoUpdateRequest;
+import com.tofutracker.Coremods.dto.requests.mods.media.ImageUpdateRequest;
+import com.tofutracker.Coremods.dto.requests.mods.media.YouTubeVideoRequest;
+import com.tofutracker.Coremods.dto.requests.mods.media.YouTubeVideoUpdateRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
-import com.tofutracker.Coremods.dto.responses.ImageResponse;
-import com.tofutracker.Coremods.dto.responses.ImageUploadResponse;
-import com.tofutracker.Coremods.dto.responses.YouTubeVideoResponse;
+import com.tofutracker.Coremods.dto.responses.mods.upload_mod.ImageResponse;
+import com.tofutracker.Coremods.dto.responses.mods.upload_mod.ImageUploadResponse;
+import com.tofutracker.Coremods.dto.responses.mods.upload_mod.YouTubeVideoResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.ModMediaService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,9 +1,9 @@
 package com.tofutracker.Coremods.services;
 
 import com.tofutracker.Coremods.config.enums.Permission;
-import com.tofutracker.Coremods.dto.requests.CommentUpdateRequest;
-import com.tofutracker.Coremods.dto.requests.ModCommentRequest;
-import com.tofutracker.Coremods.dto.responses.ModCommentResponse;
+import com.tofutracker.Coremods.dto.requests.mods.comments.ModCommentUpdateRequest;
+import com.tofutracker.Coremods.dto.requests.mods.comments.ModCommentRequest;
+import com.tofutracker.Coremods.dto.responses.mods.comments.ModCommentResponse;
 import com.tofutracker.Coremods.entity.Comment;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.ForbiddenException;
@@ -57,7 +57,7 @@ public class ModCommentService {
     }
 
     @Transactional
-    public ModCommentResponse updateComment(Long commentId, CommentUpdateRequest request, User user) {
+    public ModCommentResponse updateComment(Long commentId, ModCommentUpdateRequest request, User user) {
         validateUserForOperation(user);
 
         Comment comment = commentRepository.findById(commentId)
