@@ -44,9 +44,8 @@ public class AuthService {
 
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.badRequest()
+            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Validation failed", errors));
         }
 
@@ -54,15 +53,14 @@ public class AuthService {
             userService.registerUser(
                     request.getUsername(),
                     request.getEmail(),
-                    request.getPassword()
-            );
+                    request.getPassword());
 
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(ApiResponse.success(
                             "User registered successfully. Please check your email to verify your account."));
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             log.error("Error during user registration", e);
@@ -76,7 +74,8 @@ public class AuthService {
             boolean verified = emailVerificationService.verifyEmailToken(token);
 
             if (verified) {
-                return ResponseEntity.ok(ApiResponse.success("Email verified successfully"));
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(ApiResponse.success("Email verified successfully"));
             } else {
                 throw new BadRequestException("Invalid or expired verification token");
             }
@@ -104,7 +103,8 @@ public class AuthService {
 
             emailVerificationService.resendVerificationToken(user);
 
-            return ResponseEntity.ok(ApiResponse.success("Verification email sent successfully"));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success("Verification email sent successfully"));
 
         } catch (ResourceNotFoundException | BadRequestException e) {
             throw e;
@@ -116,36 +116,37 @@ public class AuthService {
 
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException("Not authenticated");
         }
-        
+
         try {
             Object principal = authentication.getPrincipal();
-            
+
             if (!(principal instanceof User)) {
                 throw new UnauthorizedException("Invalid authentication");
             }
-            
+
             User user;
             user = (User) principal;
 
             Optional<User> currentUser = userService.findById(user.getId());
-            
+
             if (currentUser.isEmpty()) {
                 SecurityContextHolder.clearContext();
                 throw new UnauthorizedException("User no longer exists");
             }
-            
+
             Map<String, Object> userData = getUserObjectMap(currentUser.get());
-            return ResponseEntity.ok(ApiResponse.success("User data retrieved", userData));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success("User data retrieved", userData));
         } catch (ClassCastException e) {
             log.error("Error casting authentication principal to User", e);
             throw new UnauthorizedException("Authentication error");
         }
     }
-    
+
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -153,32 +154,33 @@ public class AuthService {
 
         new SecurityContextLogoutHandler().logout(request, response, authentication);
 
-        return ResponseEntity.ok(ApiResponse.success("Logout successful"));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Logout successful"));
     }
-    
+
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(ResetPasswordRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(ResetPasswordRequest request,
+            BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.badRequest()
+            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Validation failed", errors));
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new UnauthorizedException("Not authenticated");
         }
 
         try {
             Object principal = authentication.getPrincipal();
-            
+
             if (!(principal instanceof UserDetails userDetails)) {
                 throw new UnauthorizedException("Invalid authentication");
             }
-            
+
             User user;
             if (principal instanceof User) {
                 user = (User) principal;
@@ -190,14 +192,15 @@ public class AuthService {
                 }
                 user = userOpt.get();
             }
-            
+
             if (!userService.validateCurrentPassword(user, request.getCurrentPassword())) {
                 throw new BadRequestException("Current password is incorrect");
             }
 
             userService.updatePassword(user, request.getNewPassword());
 
-            return ResponseEntity.ok(ApiResponse.success("Password updated successfully"));
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success("Password updated successfully"));
 
         } catch (ClassCastException e) {
             log.error("Error casting authentication principal to User", e);
@@ -211,11 +214,11 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(ForgotPasswordRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(ForgotPasswordRequest request,
+            BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errors.put(error.getField(), error.getDefaultMessage()));
+            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Validation failed", errors));
         }
@@ -224,13 +227,15 @@ public class AuthService {
             Optional<User> userOpt = userService.findByEmail(request.getEmail());
 
             if (userOpt.isEmpty()) {
-                return ResponseEntity.ok(ApiResponse.success("If an account with that email exists, a password reset link has been sent"));
+                return ResponseEntity.ok(ApiResponse
+                        .success("If an account with that email exists, a password reset link has been sent"));
             }
 
             User user = userOpt.get();
             passwordResetService.generatePasswordResetToken(user);
 
-            return ResponseEntity.ok(ApiResponse.success("If an account with that email exists, a password reset link has been sent"));
+            return ResponseEntity.ok(
+                    ApiResponse.success("If an account with that email exists, a password reset link has been sent"));
 
         } catch (Exception e) {
             log.error("Error during forgot password request", e);
@@ -239,33 +244,34 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(ForgotPasswordResetRequest request, BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(ForgotPasswordResetRequest request,
+            BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error ->
-                    errors.put(error.getField(), error.getDefaultMessage()));
+            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("Validation failed", errors));
         }
 
         try {
             Optional<User> userOpt = passwordResetService.getUserByResetToken(request.getToken());
-            
+
             if (userOpt.isEmpty()) {
                 throw new BadRequestException("Invalid or expired reset token");
             }
 
             User user = userOpt.get();
-            
+
             boolean tokenValid = passwordResetService.validateAndConsumeResetToken(request.getToken());
-            
+
             if (!tokenValid) {
                 throw new BadRequestException("Invalid or expired reset token");
             }
 
             userService.updatePassword(user.getId(), request.getNewPassword());
 
-            return ResponseEntity.ok(ApiResponse.success("Password reset successfully. You can now log in with your new password."));
+            return ResponseEntity
+                    .ok(ApiResponse.success("Password reset successfully. You can now log in with your new password."));
 
         } catch (BadRequestException e) {
             throw e;
@@ -283,4 +289,4 @@ public class AuthService {
         userData.put("emailVerified", user.getEmailVerified());
         return userData;
     }
-} 
+}

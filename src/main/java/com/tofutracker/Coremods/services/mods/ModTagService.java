@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services.tags;
+package com.tofutracker.Coremods.services.mods;
 
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.tags.CreateModTagResponse;
