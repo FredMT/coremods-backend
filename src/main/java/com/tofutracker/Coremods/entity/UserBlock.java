@@ -11,8 +11,8 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "user_blocks", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "blocker_id", "blocked_id", "scope_type", "mod_id",
-                "blocked_author_id" }, name = "uk_user_blocks_unique_scope")
+        @UniqueConstraint(columnNames = { "blocker_id", "blocked_id", "scope_type",
+                "mod_id" }, name = "uk_user_blocks_unique_scope")
 })
 @Getter
 @Setter
@@ -43,12 +43,7 @@ public class UserBlock {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mod_id", nullable = true)
     @ToString.Exclude
-    private GameMod mod; // Only used when scopeType is MOD
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "blocked_author_id", nullable = true)
-    @ToString.Exclude
-    private User blockedAuthor; // Only used when scopeType is AUTHOR_GLOBAL
+    private GameMod mod;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
