@@ -10,6 +10,8 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -79,6 +81,11 @@ public class BugReport {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "bugReportParent")
+    @ToString.Exclude
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
     // Helper methods
     public boolean isOpen() {

@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -205,6 +206,20 @@ public class GlobalExceptionHandler {
         public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotWritableException() {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(ApiResponse.error("Unable to serialize response data"));
+        }
+
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
+                        HttpMessageNotReadableException ex) {
+                String message = ex.getMessage();
+
+                if (message != null && message.contains("Required request body is missing")) {
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                        .body(ApiResponse.error("Request body is required"));
+                }
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(ApiResponse.error("Invalid request body format"));
         }
 
         @ExceptionHandler(Exception.class)

@@ -42,10 +42,22 @@ public class Comment {
     @NotBlank(message = "Comment content is required")
     private String content;
 
+    @Column(name = "parent_id")
+    private Long parentId;
+
+    @Column(name = "parent_type")
+    @Builder.Default
+    private String parentType = "comment";
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
+    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
     @ToString.Exclude
-    private Comment parent;
+    private Comment commentParent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private BugReport bugReportParent;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -69,14 +81,6 @@ public class Comment {
     }
 
     // Helper methods
-    public boolean isTopLevelComment() {
-        return this.parent == null;
-    }
-
-    public boolean isReply() {
-        return this.parent != null;
-    }
-
     public boolean isDeleted() {
         return this.deletedAt != null;
     }
@@ -85,19 +89,8 @@ public class Comment {
         this.deletedAt = LocalDateTime.now();
     }
 
-    public void restore() {
-        this.deletedAt = null;
-    }
-
     public boolean isUpdated() {
-        // Consider a comment updated only if the difference between createdAt and
-        // updatedAt
-        // is more than 1 second (to account for microsecond differences during
-        // creation)
-        if (createdAt == null || updatedAt == null) {
-            return false;
-        }
-        return ChronoUnit.SECONDS.between(createdAt, updatedAt) > 1;
+        return !this.updatedAt.equals(this.createdAt);
     }
 
     @Override

@@ -30,7 +30,6 @@ public class ModCommentService {
     private final CommentRepository commentRepository;
     private final GameModRepository gameModRepository;
 
-    @Transactional
     public ModCommentResponse createComment(Long gameModId, ModCommentRequest request, User user) {
         validateUserForOperation(user);
 
@@ -49,14 +48,14 @@ public class ModCommentService {
                 .commentableId(gameModId)
                 .user(user)
                 .content(request.getContent())
-                .parent(parent)
+                .parentId(parent != null ? parent.getId() : null)
+                .parentType("mod")
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
         return mapToResponse(savedComment);
     }
 
-    @Transactional
     public ModCommentResponse updateComment(Long commentId, ModCommentUpdateRequest request, User user) {
         validateUserForOperation(user);
 
@@ -76,7 +75,6 @@ public class ModCommentService {
         return mapToResponse(updatedComment);
     }
 
-    @Transactional
     public void deleteComment(Long commentId, User user) {
         validateUserForOperation(user);
 
@@ -136,7 +134,7 @@ public class ModCommentService {
 
     private ModCommentResponse mapToResponse(Comment comment) {
         boolean isDeleted = comment.isDeleted();
-        Comment parent = comment.getParent();
+        Comment parent = comment.getCommentParent();
 
         return ModCommentResponse.builder()
                 .id(comment.getId())
@@ -144,7 +142,7 @@ public class ModCommentService {
                 .username(isDeleted ? null : comment.getUser().getUsername())
                 .parentId(parent != null ? parent.getId() : null)
                 .isDeleted(isDeleted)
-                .isUpdated(isDeleted ? false : comment.isUpdated())
+                .isUpdated(!isDeleted && comment.isUpdated())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(isDeleted ? null : comment.getUpdatedAt())
                 .build();

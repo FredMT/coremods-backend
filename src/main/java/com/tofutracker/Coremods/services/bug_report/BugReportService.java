@@ -3,23 +3,30 @@ package com.tofutracker.Coremods.services.bug_report;
 import com.tofutracker.Coremods.config.enums.BugReportPriority;
 import com.tofutracker.Coremods.config.enums.BugReportStatus;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateCommentBugReportRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportPriorityRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportStatusRequest;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportPriorityUpdateResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.BugReport;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.User;
+import com.tofutracker.Coremods.entity.Comment;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
 import com.tofutracker.Coremods.repository.BugReportRepository;
 import com.tofutracker.Coremods.repository.GameModRepository;
+import com.tofutracker.Coremods.repository.CommentRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +41,7 @@ public class BugReportService {
 
     private final BugReportRepository bugReportRepository;
     private final GameModRepository gameModRepository;
+    private final CommentRepository commentRepository;
 
     @Transactional
     public BugReportResponse createBugReport(Long modId, CreateBugReportRequest request, User user) {
@@ -53,7 +61,6 @@ public class BugReportService {
         return BugReportResponse.fromEntity(savedBugReport);
     }
 
-    @Transactional(readOnly = true)
     public List<BugReportResponse> getBugReportsByModId(Long modId) {
         // Verify the mod exists
         gameModRepository.findById(modId)
@@ -64,7 +71,6 @@ public class BugReportService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
     public BugReportStatusUpdateResponse updateBugReportStatus(Long bugReportId, UpdateBugReportStatusRequest request,
             User user) {
         validateUserForOperation(user);
@@ -93,7 +99,6 @@ public class BugReportService {
                 .build();
     }
 
-    @Transactional
     public BugReportPriorityUpdateResponse updateBugReportPriority(Long bugReportId,
             UpdateBugReportPriorityRequest request, User user) {
         validateUserForOperation(user);
@@ -122,7 +127,6 @@ public class BugReportService {
                 .build();
     }
 
-    @Transactional
     public void deleteBugReport(Long bugReportId, User user) {
 
         BugReport bugReport = bugReportRepository.findById(bugReportId)
@@ -134,6 +138,46 @@ public class BugReportService {
         }
 
         bugReportRepository.delete(bugReport);
+    }
+
+    public ResponseEntity<ApiResponse<Void>> createCommentOnBugReport(BugReport bugReport, User currentUser,
+            @Valid CreateCommentBugReportRequest request) {
+
+        if (commentRepository.findByCommentableTypeAndCommentableIdAndParentId(
+                "bug_report", bugReport.getId(), null).isPresent()) {
+            throw new BadRequestException("There already exists a main comment on this bug report.");
+        }
+
+        Comment comment = Comment.builder()
+                .commentableType("bug_report")
+                .commentableId(bugReport.getId())
+                .user(currentUser)
+                .content(request.getContent())
+                .parentType("bug_report")
+                .build();
+
+        commentRepository.save(comment);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Commented on bug report successfully."));
+    }
+
+    public ResponseEntity<ApiResponse<Void>> replyToBugReportComment(BugReport bugReport, Comment comment,
+            User currentUser, @Valid CreateCommentBugReportRequest request) {
+
+        Comment reply = Comment.builder()
+                .commentableType("bug_report")
+                .commentableId(bugReport.getId())
+                .user(currentUser)
+                .content(request.getContent())
+                .parentId(comment.getId())
+                .parentType("comment")
+                .build();
+
+        commentRepository.save(reply);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Replied to bug report comment successfully."));
     }
 
     private void validateUserForOperation(User user) {
@@ -163,4 +207,5 @@ public class BugReportService {
             throw new UnauthorizedException("User credentials are expired.");
         }
     }
+
 }
