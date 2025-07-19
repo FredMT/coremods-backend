@@ -116,14 +116,15 @@ Content-Type: application/json
 
 ## Milestones
 
-| Date       | Milestone                                                         |
-| ---------- | ----------------------------------------------------------------- |
-| 2025-06-30 | ✅ Session-based auth implemented                                 |
-| 2025-07-08 | ✅ Roles and permissions implemented                              |
-| 2025-07-10 | ✅ Spring Session implemented                                     |
-| 2025-07-11 | ✅ IGDB API integration implemented                               |
-| 2025-07-15 | ✅ Mod details draft submission implemented                       |
-| 2025-07-16 | ✅ Mod image upload to DO spaces and YT video linking implemented |
-| 2025-07-17 | ✅ Mod comment system implemented                                 |
-| 2025-07-17 | ✅ Bug tracker system implemented                                 |
-| 2025-07-18 | ✅ Mod tagging and endorsement system implemented                 |
+| Date       | Milestone                                                                                                                                      |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2025-06-30 | ✅ Session-based auth implemented                                                                                                              |
+| 2025-07-08 | ✅ Roles and permissions implemented                                                                                                           |
+| 2025-07-10 | ✅ Spring Session implemented                                                                                                                  |
+| 2025-07-11 | ✅ IGDB API integration implemented                                                                                                            |
+| 2025-07-15 | ✅ Mod details draft submission implemented                                                                                                    |
+| 2025-07-16 | ✅ Mod image upload to DO spaces and YT video linking implemented                                                                              |
+| 2025-07-17 | ✅ Mod comment system implemented                                                                                                              |
+| 2025-07-17 | ✅ Bug tracker system implemented                                                                                                              |
+| 2025-07-18 | ✅ Mod tagging and endorsement system implemented                                                                                              |
+| 2025-07-18 | ✅ User blocking system implemented to block user from specific mod, globally from mod author's mods, from DMs or from interactions (comments) |
