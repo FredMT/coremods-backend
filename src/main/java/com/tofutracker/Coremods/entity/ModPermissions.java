@@ -11,20 +11,28 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "mod_distribution_settings")
+@Table(name = "mod_permissions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ModDistributionSettings {
+public class ModPermissions {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mod_id", nullable = false)
     private GameMod mod;
+
+    @Column(name = "version_number", nullable = false)
+    @Builder.Default
+    private Integer versionNumber = 1;
+
+    @Column(name = "is_latest", nullable = false)
+    @Builder.Default
+    private Boolean isLatest = true;
 
     @Column(name = "use_custom_permissions", nullable = false)
     private Boolean useCustomPermissions;

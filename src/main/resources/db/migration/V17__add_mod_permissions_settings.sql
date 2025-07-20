@@ -1,6 +1,8 @@
-CREATE TABLE mod_distribution_settings (
+CREATE TABLE mod_permissions (
     id BIGSERIAL PRIMARY KEY,
-    mod_id BIGINT NOT NULL UNIQUE,
+    mod_id BIGINT NOT NULL,
+    version_number INTEGER NOT NULL DEFAULT 1,
+    is_latest BOOLEAN NOT NULL DEFAULT TRUE,
 
     use_custom_permissions BOOLEAN NOT NULL,
     custom_permission_instructions TEXT,
@@ -55,7 +57,14 @@ CREATE TABLE mod_distribution_settings (
         )
     ),
 
-    CONSTRAINT fk_mod_distribution_settings_mod FOREIGN KEY (mod_id) REFERENCES game_mods (id) ON DELETE CASCADE
+    CONSTRAINT fk_mod_permissions_mod FOREIGN KEY (mod_id) REFERENCES game_mods (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_mod_distribution_settings_mod_id ON mod_distribution_settings (mod_id);
+-- Create indexes for faster lookups
+CREATE INDEX idx_mod_permissions_mod_id ON mod_permissions (mod_id);
+CREATE INDEX idx_mod_permissions_mod_id_is_latest ON mod_permissions (mod_id, is_latest);
+
+-- Add a constraint to ensure only one latest version per mod
+CREATE UNIQUE INDEX idx_mod_permissions_mod_id_is_latest_unique 
+ON mod_permissions (mod_id) 
+WHERE is_latest = TRUE;
