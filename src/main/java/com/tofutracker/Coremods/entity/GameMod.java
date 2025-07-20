@@ -123,41 +123,6 @@ public class GameMod {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<ModEndorsement> endorsements = new HashSet<>();
-
-    @OneToOne(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private ModDistributionSettings distributionSettings = new ModDistributionSettings();
-
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<ModTag> tags = new HashSet<>();
-
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<BugReport> bugReports = new HashSet<>();
-
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<Comment> comments = new HashSet<>();
-
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<Image> images = new HashSet<>();
-
-    @OneToMany(mappedBy = "mod", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Set<YouTubeVideo> youTubeVideos = new HashSet<>();
-
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
