@@ -7,18 +7,33 @@ import org.hibernate.proxy.HibernateProxy;
 import java.util.Objects;
 
 @Entity
-@Table(name = "igdb_platforms")
+@Table(name = "igdb_game_platforms")
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-public class IgdbPlatform {
+@AllArgsConstructor
+@Builder
+@IdClass(IgdbGamePlatformId.class)
+public class IgdbGamePlatform {
 
     @Id
-    private Long id;
+    @Column(name = "game_id")
+    private Long gameId;
 
-    @Column(nullable = false)
-    private String name;
+    @Id
+    @Column(name = "platform_id")
+    private Long platformId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private IgdbGame game;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "platform_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    private IgdbPlatform platform;
 
     @Override
     public final boolean equals(Object o) {
@@ -34,14 +49,13 @@ public class IgdbPlatform {
                 : this.getClass();
         if (thisEffectiveClass != oEffectiveClass)
             return false;
-        IgdbPlatform that = (IgdbPlatform) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+        IgdbGamePlatform that = (IgdbGamePlatform) o;
+        return getGameId() != null && Objects.equals(getGameId(), that.getGameId()) &&
+                getPlatformId() != null && Objects.equals(getPlatformId(), that.getPlatformId());
     }
 
     @Override
     public final int hashCode() {
-        return this instanceof HibernateProxy
-                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
-                : getClass().hashCode();
+        return Objects.hash(gameId, platformId);
     }
 }
