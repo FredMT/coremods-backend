@@ -3,8 +3,11 @@ package com.tofutracker.Coremods.web;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.upload_mod.GameCategoryResponse;
 import com.tofutracker.Coremods.dto.requests.mods.upload_mod.ModDetailsRequest;
+import com.tofutracker.Coremods.dto.requests.mods.upload_mod.ModRequirementsMirrorsRequest;
+import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.mods.ModUploadService;
+import com.tofutracker.Coremods.services.mods.ModRequirementsMirrorsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +26,7 @@ import java.util.List;
 public class GameModUploadController {
 
     private final ModUploadService modUploadService;
+    private final ModRequirementsMirrorsService modRequirementsMirrorsService;
 
     @GetMapping("/game/{gameId}/categories")
     public ResponseEntity<ApiResponse<List<GameCategoryResponse>>> getGameCategories(@PathVariable Long gameId) {
@@ -39,6 +43,17 @@ public class GameModUploadController {
                 currentUser.getUsername(), modDetailsRequest.getName());
 
         ApiResponse<Void> response = modUploadService.saveModDetails(modDetailsRequest, currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/{modId}/upload/requirements-mirrors")
+    public ResponseEntity<ApiResponse<Void>> saveModRequirementsMirrors(
+            @Valid @RequestBody ModRequirementsMirrorsRequest request,
+            @PathVariable("modId") GameMod gameMod,
+            @AuthenticationPrincipal User currentUser) {
+
+        ApiResponse<Void> response = modRequirementsMirrorsService.saveModRequirementsMirrors(request, gameMod,
+                currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
