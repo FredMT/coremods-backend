@@ -188,7 +188,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceededException() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("File size exceeds maximum allowed size. Header images must be under 750KB, mod images must be under 8MB."));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("File size exceeds maximum allowed size."));
     }
 
     @ExceptionHandler(HttpMessageNotWritableException.class)
