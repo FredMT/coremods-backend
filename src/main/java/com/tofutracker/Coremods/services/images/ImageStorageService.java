@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +61,6 @@ public class ImageStorageService {
 
     public String generateUniqueImageName(String originalFilename) {
         String imageName = FilenameUtils.removeExtension(originalFilename);
-        return imageName + "_" + System.currentTimeMillis();
+        return imageName + "_" + UUID.randomUUID().toString().replace("-", "");
     }
 } 

@@ -10,7 +10,7 @@ public enum FileCategory {
     OPTIONAL_FILES("Optional Files"),
     OLD_VERSIONS("Old Versions"),
     MISCELLANEOUS("Miscellaneous"),
-    ARCHIVES("Archived");
+    ARCHIVE("Archive");
 
 
     @Getter
