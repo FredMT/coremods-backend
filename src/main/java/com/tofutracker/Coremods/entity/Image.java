@@ -1,5 +1,6 @@
 package com.tofutracker.Coremods.entity;
 
+import com.tofutracker.Coremods.config.enums.ModImageType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,24 +25,22 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_mod_id", nullable = false)
-    @ToString.Exclude
-    @NotNull(message = "GameMod is required")
-    private GameMod gameMod;
+    @Column(name = "imageable_type", nullable = false)
+    @NotBlank(message = "Imageable type is required")
+    private String imageableType;
+
+    @Column(name = "imageable_id", nullable = false)
+    @NotNull(message = "Imageable ID is required")
+    private Long imageableId;
     
-    @Column(name = "name", nullable = false)
-    @NotBlank(message = "Image name is required")
-    private String name;
-    
-    @Column(name = "ext", nullable = false)
-    @NotBlank(message = "File extension is required")
-    private String ext;
+    @Column(name = "storage_key", nullable = false)
+    @NotBlank(message = "Storage key is required")
+    private String storageKey;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "image_type", nullable = false)
     @NotNull(message = "Image type is required")
-    private ImageType imageType;
+    private ModImageType imageType;
     
     @Column(name = "file_size")
     private Long fileSize;
@@ -67,10 +66,5 @@ public class Image {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
-    }
-    
-    public enum ImageType {
-        HEADER,
-        MOD_IMAGE
     }
 } 

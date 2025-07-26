@@ -29,7 +29,6 @@ public class ModFileProgressController {
         SseEmitter emitter = new SseEmitter(300000L); // 5 minutes timeout
         
         emitter.onCompletion(() -> {
-            log.debug("SSE connection completed for progressId: {}", progressId);
         });
         
         emitter.onTimeout(() -> {

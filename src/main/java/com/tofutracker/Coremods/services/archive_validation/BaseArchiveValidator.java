@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.archive_validation;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.tofutracker.Coremods.services.ArchiveConstants.*;
+import static com.tofutracker.Coremods.services.archive_validation.ArchiveConstants.*;
 
 @Slf4j
 public abstract class BaseArchiveValidator implements IArchiveValidator {

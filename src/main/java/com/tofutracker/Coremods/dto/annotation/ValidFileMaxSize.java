@@ -1,6 +1,6 @@
 package com.tofutracker.Coremods.dto.annotation;
 
-import com.tofutracker.Coremods.services.ArchiveConstants;
+import com.tofutracker.Coremods.services.archive_validation.ArchiveConstants;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.Documented;

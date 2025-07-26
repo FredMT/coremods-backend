@@ -1,17 +1,19 @@
 package com.tofutracker.Coremods.services.mods;
 
 import com.tofutracker.Coremods.config.enums.FileCategory;
+import com.tofutracker.Coremods.dto.requests.mods.ModFileEditRequest;
 import com.tofutracker.Coremods.dto.requests.mods.upload_files.ModFileUploadRequest;
-import com.tofutracker.Coremods.dto.responses.mods.ModFileResponse;
+import com.tofutracker.Coremods.dto.responses.mods.ModFileEditResponse;
 import com.tofutracker.Coremods.dto.responses.mods.ModFileUploadResponse;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.ModFile;
 import com.tofutracker.Coremods.entity.User;
+import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ModFileRepository;
-import com.tofutracker.Coremods.services.ArchiveService;
+import com.tofutracker.Coremods.services.archive_validation.ArchiveService;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -19,13 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Service
 @Slf4j
@@ -89,88 +92,71 @@ public class ModFileService {
         return uploadProgressMap.getOrDefault(progressId, -1);
     }
 
-    @Transactional(readOnly = true)
-    public ModFileResponse getModFile(Long id) {
-        ModFile modFile = modFileRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Mod file not found with ID: " + id));
+//    @Transactional(readOnly = true)
+//    public ModFileResponse getModFile(Long id) {
+//        ModFile modFile = modFileRepository.findById(id)
+//                .orElseThrow(() -> new ResourceNotFoundException("Mod file not found with ID: " + id));
+//
+//        String fileUrl = modFileStorageService.getModFileUrl(modFile.getStorageKey(), modFile.getCategory());
+//
+//        return ModFileResponse.fromEntity(modFile, fileUrl);
+//    }
 
-        String fileUrl = modFileStorageService.getModFileUrl(modFile.getStorageKey(), modFile.getCategory());
-
-        return ModFileResponse.fromEntity(modFile, fileUrl);
-    }
-    
-    @Transactional(readOnly = true)
-    public List<ModFileResponse> getModFilesByMod(Long modId) {
-        GameMod mod = gameModRepository.findById(modId)
-                .orElseThrow(() -> new ResourceNotFoundException("Mod not found with ID: " + modId));
-        
-        List<ModFile> modFiles = modFileRepository.findByMod(mod);
-        
-        return modFiles.stream()
-                .map(modFile -> {
-                    String fileUrl = modFileStorageService.getModFileUrl(modFile.getStorageKey(), modFile.getCategory());
-                    return ModFileResponse.fromEntity(modFile, fileUrl);
-                })
-                .collect(Collectors.toList());
-    }
-    
-    @Transactional(readOnly = true)
-    public List<ModFileResponse> getModFilesByModAndCategory(Long modId, FileCategory category) {
-        GameMod mod = gameModRepository.findById(modId)
-                .orElseThrow(() -> new ResourceNotFoundException("Mod not found with ID: " + modId));
-        
-        List<ModFile> modFiles = modFileRepository.findByModAndCategory(mod, category);
-        
-        return modFiles.stream()
-                .map(modFile -> {
-                    String fileUrl = modFileStorageService.getModFileUrl(modFile.getStorageKey(), modFile.getCategory());
-                    return ModFileResponse.fromEntity(modFile, fileUrl);
-                })
-                .collect(Collectors.toList());
-    }
-    
     @Transactional
-    public void archiveModFile(Long modId, Long id, User currentUser) {
+    public ModFileEditResponse editModFile(Long modId, Long fileId, ModFileEditRequest request, User currentUser) {
+        ModFile modFile = modFileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("Mod file not found with ID: " + fileId));
 
-        GameMod gameMod = gameModRepository.findById(modId)
-                .orElseThrow(()  -> new ResourceNotFoundException("Mod not found with ID: " + modId));
-
-        ModFile modFile = modFileRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Mod file not found with ID: " + id));
-
-
-        if (!gameMod.getAuthor().getId().equals(currentUser.getId())) {
-            throw new ForbiddenException("You are not authorized to archive this file");
+        if (!modFile.getMod().getId().equals(modId)) {
+            throw new BadRequestException("File does not belong to the specified mod");
         }
-        
-        try {
-            String archivedKey = modFileStorageService.moveFileToArchive(
-                    modFile.getStorageKey(), 
-                    modFile.getMod(), 
-                    modFile.getName(), 
-                    modFile.getExt());
 
-            modFile.setStorageKey(archivedKey);
-            modFile.setCategory(FileCategory.ARCHIVE);
-            modFileRepository.save(modFile);
-            
-            log.info("File with ID {} has been archived", modFile.getId());
-        } catch (IOException e) {
-            log.error("Failed to archive file with ID {}: {}", modFile.getId(), e.getMessage());
-            throw new RuntimeException("Failed to archive file", e);
+        if (!modFile.getMod().getAuthor().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("You are not authorized to edit this mod file");
         }
-    }
-    
-    @Transactional
-    public ModFileResponse incrementDownloadCount(Long id) {
-        ModFile modFile = modFileRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Mod file not found with ID: " + id));
-        
-        modFile.setDownloadCount(modFile.getDownloadCount() + 1);
+
+        boolean hasChanges = false;
+
+        hasChanges |= updateIfChanged(modFile::getName, modFile::setName, request.getName());
+        hasChanges |= updateIfChanged(modFile::getVersion, modFile::setVersion, request.getVersion());
+        hasChanges |= updateIfChanged(modFile::getDescription, modFile::setDescription, request.getDescription());
+
+        if (request.getCategory() != null) {
+            FileCategory newCategory = FileCategory.valueOf(request.getCategory());
+            if (!newCategory.equals(modFile.getCategory())) {
+                String oldStorageKey = modFile.getStorageKey();
+                String newStorageKey = moveFileToNewCategory(modFile, newCategory);
+                modFile.setStorageKey(newStorageKey);
+                modFile.setCategory(newCategory);
+                hasChanges = true;
+                log.info("File moved from {} to {} due to category change", oldStorageKey, newStorageKey);
+            }
+        }
+
+        if (!hasChanges) {
+            throw new BadRequestException("At least one field must be provided and different from current values");
+        }
+
         ModFile savedModFile = modFileRepository.save(modFile);
-        
-        String fileUrl = modFileStorageService.getModFileUrl(savedModFile.getStorageKey(), savedModFile.getCategory());
-        
-        return ModFileResponse.fromEntity(savedModFile, fileUrl);
+        log.info("Mod file updated successfully: {}", savedModFile.getId());
+
+        return ModFileEditResponse.fromEntity(savedModFile);
+    }
+
+    private String moveFileToNewCategory(ModFile modFile, FileCategory newCategory) {
+        String oldStorageKey = modFile.getStorageKey();
+        String fileName = modFile.getName();
+        String extension = modFile.getExt();
+        GameMod mod = modFile.getMod();
+
+        return modFileStorageService.moveFileToCategory(oldStorageKey, mod, newCategory, fileName, extension);
+    }
+
+    private <T> boolean updateIfChanged(Supplier<T> getter, Consumer<T> setter, T newValue) {
+        if (newValue != null && !Objects.equals(getter.get(), newValue)) {
+            setter.accept(newValue);
+            return true;
+        }
+        return false;
     }
 } 

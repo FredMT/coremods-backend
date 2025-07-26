@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.archive_validation;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

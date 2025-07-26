@@ -1,4 +1,4 @@
-package com.tofutracker.Coremods.services;
+package com.tofutracker.Coremods.services.archive_validation;
 
 import java.io.IOException;
 import java.util.Map;

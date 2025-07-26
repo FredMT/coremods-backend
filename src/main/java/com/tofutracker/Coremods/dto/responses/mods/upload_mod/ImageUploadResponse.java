@@ -20,7 +20,7 @@ public class ImageUploadResponse {
         return new ImageUploadResponse(
                 image.getId(),
                 imageStorageService.getImageUrl(image),
-                image.getName(),
+                image.getStorageKey(),
                 image.getImageType().toString(),
                 image.getFileSize()
         );

@@ -1,7 +1,14 @@
 package com.tofutracker.Coremods.services.images;
 
-import com.tofutracker.Coremods.entity.GameMod;
+import com.tofutracker.Coremods.config.enums.ModImageType;
 import com.tofutracker.Coremods.entity.Image;
+import com.tofutracker.Coremods.entity.User;
+import com.tofutracker.Coremods.entity.GameMod;
+import com.tofutracker.Coremods.exception.BadRequestException;
+import com.tofutracker.Coremods.exception.ForbiddenException;
+import com.tofutracker.Coremods.exception.ResourceNotFoundException;
+import com.tofutracker.Coremods.repository.GameModRepository;
+import com.tofutracker.Coremods.repository.ImageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -11,110 +18,179 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.EntityManager;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ImageService {
 
-    private final ImageValidationService imageValidationService;
     private final ImageStorageService imageStorageService;
-    private final ImageDatabaseService imageDatabaseService;
+    private final ImageRepository imageRepository;
+    private final GameModRepository gameModRepository;
     private final EntityManager entityManager;
 
-    @Transactional
-    public Image saveHeaderImage(Long gameModId, MultipartFile multipartFile) throws IOException {
-        GameMod gameMod = imageDatabaseService.findGameModById(gameModId);
-        imageValidationService.validateImageFile(multipartFile, Image.ImageType.HEADER);
+    private static final long HEADER_IMAGE_MAX_SIZE = 750 * 1024;
+    private static final long MOD_IMAGE_MAX_SIZE = 8 * 1024 * 1024;
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "webp");
 
-        Optional<Image> existingHeader = imageDatabaseService.findHeaderImage(gameModId);
+    @Transactional
+    public Image saveHeaderImage(Long gameModId, MultipartFile multipartFile, User currentUser) throws IOException {
+        validateModOwnership(gameModId, currentUser);
+        validateImageFile(multipartFile, ModImageType.HEADER);
+
+        Optional<Image> existingHeader = findHeaderImage(gameModId);
         if (existingHeader.isPresent()) {
             try {
                 deleteImageFile(existingHeader.get());
-                // Flush the deletion to ensure it's processed before inserting the new image
                 entityManager.flush();
             } catch (Exception e) {
-                log.error("Failed to delete existing header image: {}", existingHeader.get().getName(), e);
+                log.error("Failed to delete existing header image for mod: {}", gameModId, e);
                 throw new RuntimeException("Failed to delete existing header image", e);
             }
         }
 
-        return saveImageFile(multipartFile, gameMod, Image.ImageType.HEADER, null);
+        log.info("Saving header image for mod: {}, user: {}", gameModId, currentUser.getUsername());
+        return saveImageFile(multipartFile, gameModId, ModImageType.HEADER, null);
     }
 
     @Transactional
-    public Image saveModImage(Long gameModId, MultipartFile multipartFile) throws IOException {
-        GameMod gameMod = imageDatabaseService.findGameModById(gameModId);
-        imageValidationService.validateImageFile(multipartFile, Image.ImageType.MOD_IMAGE);
+    public Image saveModImage(Long gameModId, MultipartFile multipartFile, User currentUser) throws IOException {
+        validateModOwnership(gameModId, currentUser);
+        validateImageFile(multipartFile, ModImageType.MOD_IMAGE);
 
-        long existingCount = imageDatabaseService.countModImages(gameModId);
+        long existingCount = countModImages(gameModId);
         int displayOrder = (int) (existingCount + 1);
 
-        return saveImageFile(multipartFile, gameMod, Image.ImageType.MOD_IMAGE, displayOrder);
+        log.info("Saving mod image for mod: {}, user: {}", gameModId, currentUser.getUsername());
+        return saveImageFile(multipartFile, gameModId, ModImageType.MOD_IMAGE, displayOrder);
     }
 
     @Transactional
-    public void deleteImage(Long imageId) throws Exception {
-        Image image = imageDatabaseService.findImageById(imageId);
+    public void deleteImage(Long gameModId, Long imageId, User currentUser) throws Exception {
+        validateModOwnership(gameModId, currentUser);
+        Image image = findImageById(imageId);
+        
+        log.info("Deleting image: {}, mod: {}, user: {}", imageId, image.getImageableId(), currentUser.getUsername());
         deleteImageFile(image);
     }
 
-    @Transactional
-    public void deleteImagesByGameMod(Long gameModId) {
-        List<Image> images = imageDatabaseService.findImagesByGameMod(gameModId);
-
-        for (Image image : images) {
-            try {
-                imageStorageService.deleteImage(image);
-            } catch (Exception e) {
-                log.error("Failed to delete image from S3: {}", image.getName(), e);
-            }
-        }
-
-        imageDatabaseService.deleteImagesByGameMod(gameModId);
-    }
-
     public List<Image> getImagesByGameMod(Long gameModId) {
-        return imageDatabaseService.findImagesByGameMod(gameModId);
+        return findImagesByGameMod(gameModId);
     }
 
     public Optional<Image> getHeaderImage(Long gameModId) {
-        return imageDatabaseService.findHeaderImage(gameModId);
+        return findHeaderImage(gameModId);
     }
 
     public List<Image> getModImages(Long gameModId) {
-        return imageDatabaseService.findModImages(gameModId);
+        return findModImages(gameModId);
     }
 
     public String getImageUrl(Image image) {
         return imageStorageService.getImageUrl(image);
     }
 
-    @Transactional
-    public Image updateImageName(Long imageId, String newName) {
-        Image image = imageDatabaseService.findImageById(imageId);
-        image.setName(newName);
-        return imageDatabaseService.saveImage(image);
-    }
-
-        private Image saveImageFile(MultipartFile multipartFile, GameMod gameMod, 
-                               Image.ImageType imageType, Integer displayOrder) throws IOException {
+    private Image saveImageFile(MultipartFile multipartFile, Long gameModId,
+            ModImageType imageType, Integer displayOrder) throws IOException {
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-        String uniqueImageName = imageStorageService.generateUniqueImageName(multipartFile.getOriginalFilename());
+        String baseFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
+        String uniqueFileName = baseFileName + "_" + UUID.randomUUID().toString().replace("-", "");
+        String storageKey = String.format("mods/%d/images/%s.%s", gameModId, uniqueFileName, extension);
+        imageStorageService.uploadImage(multipartFile, storageKey);
 
-        imageStorageService.uploadImage(multipartFile, uniqueImageName);
+        Image image = Image.builder()
+                .imageableType("MOD")
+                .imageableId(gameModId)
+                .storageKey(storageKey)
+                .imageType(imageType)
+                .fileSize(multipartFile.getSize())
+                .displayOrder(imageType == ModImageType.MOD_IMAGE ? displayOrder : null)
+                .build();
 
-        Image image = imageDatabaseService.createImage(gameMod, uniqueImageName, extension,
-                imageType, multipartFile.getSize(), displayOrder);
-
-        return imageDatabaseService.saveImage(image);
+        return imageRepository.save(image);
     }
 
     private void deleteImageFile(Image image) throws Exception {
         imageStorageService.deleteImage(image);
-        imageDatabaseService.deleteImage(image);
-        log.info("Image deleted successfully: {}", image.getName());
+        
+        Integer deletedDisplayOrder = image.getDisplayOrder();
+        imageRepository.delete(image);
+        
+        if (deletedDisplayOrder != null) {
+            imageRepository.shiftDisplayOrderDown(image.getImageableType(), image.getImageableId(), deletedDisplayOrder);
+        }
+        
+        log.info("Image deleted successfully: {}", image.getStorageKey());
     }
-} 
+
+    private void validateImageFile(MultipartFile file, ModImageType imageType) {
+        if (file.isEmpty()) {
+            throw new BadRequestException("Image file cannot be empty");
+        }
+
+        validateFileSize(file, imageType);
+        validateFileExtension(file);
+        validateContentType(file);
+    }
+
+    private void validateFileSize(MultipartFile file, ModImageType imageType) {
+        long maxSize = (imageType == ModImageType.HEADER) ? HEADER_IMAGE_MAX_SIZE : MOD_IMAGE_MAX_SIZE;
+        if (file.getSize() > maxSize) {
+            String maxSizeStr = (imageType == ModImageType.HEADER) ? "750KB" : "8MB";
+            throw new BadRequestException("Image file size exceeds maximum allowed size of " + maxSizeStr);
+        }
+    }
+
+    private void validateFileExtension(MultipartFile file) {
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+        if (extension == null || !ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+            throw new BadRequestException(
+                    "Invalid image format. Allowed formats: " + String.join(", ", ALLOWED_EXTENSIONS));
+        }
+    }
+
+    private void validateContentType(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("File must be an image");
+        }
+    }
+
+    private Image findImageById(Long imageId) {
+        return imageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
+    }
+
+    private List<Image> findImagesByGameMod(Long gameModId) {
+        return imageRepository.findByImageableTypeAndImageableIdOrderByDisplayOrderAsc("MOD", gameModId)
+                .orElse(List.of());
+    }
+
+    private Optional<Image> findHeaderImage(Long gameModId) {
+        return imageRepository.findFirstByImageableTypeAndImageableIdAndImageType("MOD", gameModId,
+                ModImageType.HEADER);
+    }
+
+    private List<Image> findModImages(Long gameModId) {
+        return imageRepository.findByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
+                .orElse(List.of());
+    }
+
+    private long countModImages(Long gameModId) {
+        return imageRepository.countByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
+                .orElse(0L);
+    }
+
+    private void validateModOwnership(Long gameModId, User currentUser) {
+        GameMod gameMod = gameModRepository.findById(gameModId)
+                .orElseThrow(() -> new ResourceNotFoundException("GameMod not found with id: " + gameModId));
+        
+        if (!gameMod.getAuthor().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("You are not authorized to modify this mod's images");
+        }
+    }
+}

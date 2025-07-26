@@ -6,7 +6,7 @@ import com.tofutracker.Coremods.dto.annotation.ValidFileMaxSize;
 import com.tofutracker.Coremods.dto.annotation.ValidFileMimeType;
 import com.tofutracker.Coremods.dto.annotation.ValidFileVersion;
 import com.tofutracker.Coremods.dto.annotation.ValueOfEnum;
-import com.tofutracker.Coremods.services.ArchiveConstants;
+import com.tofutracker.Coremods.services.archive_validation.ArchiveConstants;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -85,7 +85,7 @@ public class SecurityConfig {
             throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(authz -> authz
+                .authorizeHttpRequests(authz -> authz // TODO: DO proper request matching
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/verify-email",
@@ -95,9 +95,8 @@ public class SecurityConfig {
                                 "/api/auth/me",
                                 "/error")
                         .permitAll()
-                        .requestMatchers("/api/auth/reset-password")
-                        .authenticated()
-                        .anyRequest().permitAll())
+                        .requestMatchers("/api/auth/reset-password").authenticated()
+                        .anyRequest().permitAll()) // TODO: change to authenticated
                 .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout

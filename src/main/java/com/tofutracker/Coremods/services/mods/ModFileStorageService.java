@@ -8,7 +8,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.tofutracker.Coremods.config.enums.FileCategory;
 import com.tofutracker.Coremods.entity.GameMod;
-import com.tofutracker.Coremods.services.ArchiveConstants;
+import com.tofutracker.Coremods.services.archive_validation.ArchiveConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class ModFileStorageService {
     @Value("${do.space.bucket}")
     private String doSpaceBucket;
 
-    @Value("${do.space.folder:mods/files/}")
+    @Value("${do.space.folder:mods/}")
     private String modFilesBaseFolder;
 
 
@@ -40,7 +41,8 @@ public class ModFileStorageService {
 
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
         String folderPath = buildFolderPath(mod, fileCategory);
-        String key = folderPath + fileName + "." + extension;
+        String storageFileName = fileName.replace(" ", "_") + "_" + UUID.randomUUID().toString().replace("-", "");
+        String key = folderPath + storageFileName + "." + extension;
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
@@ -75,7 +77,21 @@ public class ModFileStorageService {
 
     public String moveFileToArchive(String sourceKey, GameMod mod, String fileName, String extension) throws IOException {
         String archiveFolderPath = buildFolderPath(mod, FileCategory.ARCHIVE);
-        String destinationKey = archiveFolderPath + fileName + "." + extension;
+        String storageFileName = fileName.replace(" ", "_") + "_" + UUID.randomUUID().toString().replace("-", "");
+        String destinationKey = archiveFolderPath + storageFileName + "." + extension;
+
+        s3Client.copyObject(doSpaceBucket, sourceKey, doSpaceBucket, destinationKey);
+        log.info("File copied from {} to {}", sourceKey, destinationKey);
+
+        deleteModFile(sourceKey);
+        
+        return destinationKey;
+    }
+
+    public String moveFileToCategory(String sourceKey, GameMod mod, FileCategory newCategory, String fileName, String extension) {
+        String newFolderPath = buildFolderPath(mod, newCategory);
+        String storageFileName = fileName.replace(" ", "_") + "_" + UUID.randomUUID().toString().replace("-", "");
+        String destinationKey = newFolderPath + storageFileName + "." + extension;
 
         s3Client.copyObject(doSpaceBucket, sourceKey, doSpaceBucket, destinationKey);
         log.info("File copied from {} to {}", sourceKey, destinationKey);
@@ -97,6 +113,6 @@ public class ModFileStorageService {
     }
 
     private String buildFolderPath(GameMod mod, FileCategory fileCategory) {
-        return modFilesBaseFolder + mod.getId() + "/" + fileCategory.getDisplayName().replace(" ", "_").toLowerCase() + "/";
+        return modFilesBaseFolder + mod.getId() + "/files/" + fileCategory.getDisplayName().replace(" ", "_").toLowerCase() + "/";
     }
 } 

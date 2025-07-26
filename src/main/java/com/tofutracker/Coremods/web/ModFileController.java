@@ -1,13 +1,16 @@
 package com.tofutracker.Coremods.web;
 
 import com.tofutracker.Coremods.config.enums.FileCategory;
+import com.tofutracker.Coremods.dto.requests.mods.ModFileEditRequest;
 import com.tofutracker.Coremods.dto.requests.mods.upload_files.ModFileUploadRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
-import com.tofutracker.Coremods.dto.responses.mods.ModFileResponse;
+import com.tofutracker.Coremods.dto.responses.mods.ModFileEditResponse;
 import com.tofutracker.Coremods.dto.responses.mods.ModFileUploadResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.mods.ModFileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/mods/{modId}/files")
 @RequiredArgsConstructor
+@Slf4j
 public class ModFileController {
 
     private final ModFileService modFileService;
@@ -55,46 +58,14 @@ public class ModFileController {
                 .body(ApiResponse.success("File upload started successfully", response));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ModFileResponse>> getModFile(
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<ModFileEditResponse>> editModFile(
             @PathVariable Long modId,
             @PathVariable Long id,
+            @Valid @RequestBody ModFileEditRequest request,
             @AuthenticationPrincipal User currentUser) {
-        ModFileResponse response = modFileService.getModFile(id);
-        return ResponseEntity.ok(ApiResponse.success("Mod file retrieved successfully", response));
-    }
-
-    @GetMapping()
-    public ResponseEntity<ApiResponse<List<ModFileResponse>>> getModFilesByMod(
-            @PathVariable Long modId,
-            @AuthenticationPrincipal User currentUser) {
-        List<ModFileResponse> response = modFileService.getModFilesByMod(modId);
-        return ResponseEntity.ok(ApiResponse.success("Mod files retrieved successfully", response));
-    }
-
-    @GetMapping("/category/{category}")
-    public ResponseEntity<ApiResponse<List<ModFileResponse>>> getModFilesByModAndCategory(
-            @PathVariable Long modId, 
-            @PathVariable FileCategory category,
-            @AuthenticationPrincipal User currentUser) {
-        List<ModFileResponse> response = modFileService.getModFilesByModAndCategory(modId, category);
-        return ResponseEntity.ok(ApiResponse.success("Mod files retrieved successfully", response));
-    }
-
-    @PostMapping("/{fileId}/archive")
-    public ResponseEntity<ApiResponse<Void>> archiveModFile(
-            @PathVariable Long modId,
-            @PathVariable Long fileId,
-            @AuthenticationPrincipal User currentUser) {
-        modFileService.archiveModFile(modId, fileId, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Mod file archived successfully"));
-    }
-
-    @PostMapping("/{fileId}/download")
-    public ResponseEntity<ApiResponse<ModFileResponse>> incrementDownloadCount(
-            @PathVariable Long modId,
-            @PathVariable Long fileId) {
-        ModFileResponse response = modFileService.incrementDownloadCount(fileId);
-        return ResponseEntity.ok(ApiResponse.success("Download count incremented successfully", response));
+        
+        ModFileEditResponse response = modFileService.editModFile(modId, id, request, currentUser);
+        return ResponseEntity.ok(ApiResponse.success("Mod file details updated successfully", response));
     }
 } 

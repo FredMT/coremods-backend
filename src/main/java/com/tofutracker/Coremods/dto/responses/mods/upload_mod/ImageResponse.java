@@ -24,7 +24,7 @@ public class ImageResponse {
     public static ImageResponse from(Image image, ImageStorageService imageStorageService) {
         return new ImageResponse(
             image.getId(),
-            image.getName(),
+            image.getStorageKey(),
             image.getImageType().toString(),
             imageStorageService.getImageUrl(image),
             image.getDisplayOrder(),
