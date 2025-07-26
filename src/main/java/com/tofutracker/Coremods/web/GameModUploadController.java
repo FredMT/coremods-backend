@@ -56,4 +56,12 @@ public class GameModUploadController {
                 currentUser);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @PostMapping("/{modId}/publish")
+    public  ResponseEntity<ApiResponse<Void>> publishMod(
+            @PathVariable("modId") Long gameMod,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        return modUploadService.publishMod(gameMod, currentUser);
+    }
 }

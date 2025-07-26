@@ -1,0 +1,2 @@
+ALTER TABLE game_mods 
+ADD COLUMN is_published BOOLEAN NOT NULL DEFAULT FALSE; 

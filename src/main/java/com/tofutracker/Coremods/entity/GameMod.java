@@ -108,6 +108,10 @@ public class GameMod {
     @Builder.Default
     private boolean hasTranslationFiles = false;
 
+    @Column(name = "is_published", nullable = false)
+    @Builder.Default
+    private boolean isPublished = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
