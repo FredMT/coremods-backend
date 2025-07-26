@@ -12,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+// TODO: be removed
+
 @RestController
 @RequestMapping("/api/v1/virustotal")
 @RequiredArgsConstructor

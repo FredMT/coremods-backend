@@ -2,7 +2,6 @@ package com.tofutracker.Coremods.web;
 
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.DLCResponse;
-import com.tofutracker.Coremods.entity.IgdbGame;
 import com.tofutracker.Coremods.services.mods.DLCSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,13 @@ public class DLCSearchController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<DLCResponse>>> getGameDLCs(
-            @PathVariable("gameId") IgdbGame game) {
-        return dlcSearchService.getDLCsForGameByGameId(game);
+            @PathVariable("gameId") Long gameId) {
+        List<DLCResponse> dlcResponses = dlcSearchService.getDLCsByGameId(gameId);
+
+        if (dlcResponses.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.success("No DLCs found"));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success("DLCs retrieved successfully", dlcResponses));
     }
 }

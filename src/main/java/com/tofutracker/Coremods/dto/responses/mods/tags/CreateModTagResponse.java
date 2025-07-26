@@ -17,6 +17,7 @@ public class CreateModTagResponse {
     private String tag;
 
     public static CreateModTagResponse fromEntity(ModTag modTag) {
+
         if (modTag == null) {
             return null;
         }

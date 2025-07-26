@@ -25,7 +25,6 @@ public class ModFileProgressController {
 
     @GetMapping(value = "/{progressId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter trackProgress(@PathVariable String progressId) {
-        log.info("Starting SSE connection for progress tracking: {}", progressId);
         SseEmitter emitter = new SseEmitter(300000L); // 5 minutes timeout
         
         emitter.onCompletion(() -> {

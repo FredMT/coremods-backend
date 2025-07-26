@@ -1,14 +1,15 @@
 package com.tofutracker.Coremods.services.images;
 
 import com.tofutracker.Coremods.config.enums.ModImageType;
+import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.Image;
 import com.tofutracker.Coremods.entity.User;
-import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ImageRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
@@ -16,9 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class ImageService {
 
     private static final long HEADER_IMAGE_MAX_SIZE = 750 * 1024;
     private static final long MOD_IMAGE_MAX_SIZE = 8 * 1024 * 1024;
-    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "webp");
+    private static final List<String> ALLOWED_EXTENSIONS = List.of("jpg", "jpeg", "png", "webp");
 
     @Transactional
     public Image saveHeaderImage(Long gameModId, MultipartFile multipartFile, User currentUser) throws IOException {
@@ -62,7 +61,9 @@ public class ImageService {
         validateModOwnership(gameModId, currentUser);
         validateImageFile(multipartFile, ModImageType.MOD_IMAGE);
 
-        long existingCount = countModImages(gameModId);
+        long existingCount = imageRepository.countByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
+                .orElse(0L);
+
         int displayOrder = (int) (existingCount + 1);
 
         log.info("Saving mod image for mod: {}, user: {}", gameModId, currentUser.getUsername());
@@ -72,14 +73,17 @@ public class ImageService {
     @Transactional
     public void deleteImage(Long gameModId, Long imageId, User currentUser) throws Exception {
         validateModOwnership(gameModId, currentUser);
-        Image image = findImageById(imageId);
+
+        Image image = imageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
         
         log.info("Deleting image: {}, mod: {}, user: {}", imageId, image.getImageableId(), currentUser.getUsername());
         deleteImageFile(image);
     }
 
     public List<Image> getImagesByGameMod(Long gameModId) {
-        return findImagesByGameMod(gameModId);
+        return imageRepository.findByImageableTypeAndImageableIdOrderByDisplayOrderAsc("MOD", gameModId)
+                .orElse(List.of());
     }
 
     public Optional<Image> getHeaderImage(Long gameModId) {
@@ -87,7 +91,8 @@ public class ImageService {
     }
 
     public List<Image> getModImages(Long gameModId) {
-        return findModImages(gameModId);
+        return imageRepository.findByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
+                .orElse(List.of());
     }
 
     public String getImageUrl(Image image) {
@@ -160,29 +165,9 @@ public class ImageService {
         }
     }
 
-    private Image findImageById(Long imageId) {
-        return imageRepository.findById(imageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
-    }
-
-    private List<Image> findImagesByGameMod(Long gameModId) {
-        return imageRepository.findByImageableTypeAndImageableIdOrderByDisplayOrderAsc("MOD", gameModId)
-                .orElse(List.of());
-    }
-
     private Optional<Image> findHeaderImage(Long gameModId) {
         return imageRepository.findFirstByImageableTypeAndImageableIdAndImageType("MOD", gameModId,
                 ModImageType.HEADER);
-    }
-
-    private List<Image> findModImages(Long gameModId) {
-        return imageRepository.findByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
-                .orElse(List.of());
-    }
-
-    private long countModImages(Long gameModId) {
-        return imageRepository.countByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
-                .orElse(0L);
     }
 
     private void validateModOwnership(Long gameModId, User currentUser) {

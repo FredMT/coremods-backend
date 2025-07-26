@@ -1,36 +1,25 @@
 package com.tofutracker.Coremods.web;
 
-import java.util.List;
-
-import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateCommentBugReportRequest;
-import com.tofutracker.Coremods.entity.BugReport;
-import com.tofutracker.Coremods.entity.Comment;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateBugReportRequest;
+import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateCommentBugReportRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportPriorityRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportStatusRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportPriorityUpdateResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportStatusUpdateResponse;
+import com.tofutracker.Coremods.entity.Comment;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.bug_report.BugReportService;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -43,8 +32,7 @@ public class BugReportController {
         @GetMapping("/{modId}")
         public ResponseEntity<ApiResponse<List<BugReportResponse>>> getBugReportsByMod(@PathVariable Long modId) {
                 List<BugReportResponse> bugReports = bugReportService.getBugReportsByModId(modId);
-                return ResponseEntity.status(HttpStatus.OK)
-                                .body(ApiResponse.success("Bug reports retrieved successfully", bugReports));
+                return ResponseEntity.ok(ApiResponse.success("Bug reports retrieved successfully", bugReports));
         }
 
         @PostMapping("/{modId}")
@@ -54,8 +42,7 @@ public class BugReportController {
                         @AuthenticationPrincipal User currentUser) {
 
                 BugReportResponse bugReport = bugReportService.createBugReport(modId, request, currentUser);
-                return ResponseEntity.status(HttpStatus.CREATED)
-                                .body(ApiResponse.success("Bug report created successfully", bugReport));
+                return ResponseEntity.ok(ApiResponse.success("Bug report created successfully", bugReport));
         }
 
         @PutMapping("/{bugReportId}/status")
@@ -66,8 +53,7 @@ public class BugReportController {
 
                 BugReportStatusUpdateResponse response = bugReportService.updateBugReportStatus(bugReportId, request,
                                 currentUser);
-                return ResponseEntity.status(HttpStatus.OK)
-                                .body(ApiResponse.success("Bug report status updated successfully", response));
+                return ResponseEntity.ok(ApiResponse.success("Bug report status updated successfully", response));
         }
 
         @PutMapping("/{bugReportId}/priority")
@@ -79,33 +65,34 @@ public class BugReportController {
                 BugReportPriorityUpdateResponse response = bugReportService.updateBugReportPriority(bugReportId,
                                 request,
                                 currentUser);
-                return ResponseEntity.status(HttpStatus.OK)
-                                .body(ApiResponse.success("Bug report priority updated successfully", response));
+                return ResponseEntity.ok(ApiResponse.success("Bug report priority updated successfully", response));
         }
 
         @DeleteMapping("/{bugReportId}")
         public ResponseEntity<ApiResponse<Void>> deleteBugReport(@PathVariable Long bugReportId,
                         @AuthenticationPrincipal User currentUser) {
-
                 bugReportService.deleteBugReport(bugReportId, currentUser);
-                return ResponseEntity.status(HttpStatus.OK)
-                                .body(ApiResponse.success("Bug report deleted successfully"));
+                return ResponseEntity.ok(ApiResponse.success("Bug report deleted successfully"));
         }
 
         @PostMapping("/{bugReportId}/comment")
-        public ResponseEntity<ApiResponse<Void>> commentBugReport(
-                        @PathVariable("bugReportId") BugReport bugReport,
+        public ResponseEntity<ApiResponse<Comment>> commentBugReport(
+                        @PathVariable("bugReportId") Long bugReportId,
                         @AuthenticationPrincipal User currentUser,
                         @Valid @RequestBody CreateCommentBugReportRequest request) {
-                return bugReportService.createCommentOnBugReport(bugReport, currentUser, request);
+                Comment comment = bugReportService.createCommentOnBugReport(bugReportId, currentUser, request);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Commented on bug report successfully.", comment));
         }
 
         @PostMapping("/{bugReportId}/comment/{commentId}")
-        public ResponseEntity<ApiResponse<Void>> replyToComment(
-                        @PathVariable("bugReportId") BugReport bugReport,
-                        @PathVariable("commentId") Comment comment,
+        public ResponseEntity<ApiResponse<Comment>> replyToComment(
+                        @PathVariable("bugReportId") Long bugReportId,
+                        @PathVariable("commentId") Long commentId,
                         @AuthenticationPrincipal User currentUser,
                         @Valid @RequestBody CreateCommentBugReportRequest request) {
-                return bugReportService.replyToBugReportComment(bugReport, comment, currentUser, request);
+                Comment reply = bugReportService.replyToBugReportComment(bugReportId, commentId, currentUser, request);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(ApiResponse.success("Commented on bug report successfully.", reply));
         }
 }

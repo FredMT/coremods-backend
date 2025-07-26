@@ -22,8 +22,8 @@ public interface GameModRepository extends JpaRepository<GameMod, Long> {
      */
     boolean existsByNameAndGame(String name, IgdbGame game);
 
-    @Query("SELECT gm FROM GameMod gm JOIN FETCH gm.game WHERE LOWER(gm.name) LIKE LOWER(CONCAT('%', :name, '%'))")
-    List<GameMod> searchGameModByName(@Param("name") @NotBlank(message = "Mod name is required") String name);
+    @Query("SELECT gm FROM GameMod gm JOIN FETCH gm.game WHERE LOWER(gm.name) LIKE LOWER(CONCAT('%', :name, '%')) AND gm.isPublished = true")
+    List<GameMod> searchGameModByNameAndIsPublished(@Param("name") @NotBlank(message = "Mod name is required") String name);
 
     @Query("SELECT gm.id FROM GameMod gm WHERE gm.id IN :modIds")
     Set<Long> findExistingModIds(@Param("modIds") List<Long> modIds);

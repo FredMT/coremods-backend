@@ -6,14 +6,12 @@ import com.tofutracker.Coremods.dto.requests.auth.RegisterRequest;
 import com.tofutracker.Coremods.dto.requests.auth.ResetPasswordRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.services.auth.AuthService;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -27,8 +25,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
-        return authService.register(request, bindingResult);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> register(@Valid @RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
     @PostMapping("/logout")
@@ -52,17 +50,17 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(@Valid @RequestBody ResetPasswordRequest request, BindingResult bindingResult) {
-        return authService.resetPassword(request, bindingResult);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return authService.resetPassword(request);
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request, BindingResult bindingResult) {
-        return authService.forgotPassword(request, bindingResult);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return authService.forgotPassword(request);
     }
 
     @PostMapping("/forgot-password/reset")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(@Valid @RequestBody ForgotPasswordResetRequest request, BindingResult bindingResult) {
-        return authService.resetPasswordWithToken(request, bindingResult);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(@Valid @RequestBody ForgotPasswordResetRequest request) {
+        return authService.resetPasswordWithToken(request);
     }
 } 

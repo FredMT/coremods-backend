@@ -14,12 +14,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ModSearchController {
 
-    // TODO: Update it later to search only for published mods
-
     private final ModSearchService modSearchService;
 
     @GetMapping()
     public ResponseEntity<ApiResponse<List<ModSearchResponse>>> searchMods(@RequestParam("q") String searchQuery) {
-        return modSearchService.searchMods(searchQuery);
+        List<ModSearchResponse> searchResults = modSearchService.searchMods(searchQuery);
+
+        if (searchResults.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.success("No search results found", searchResults));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success("Search results found", searchResults));
     }
 }

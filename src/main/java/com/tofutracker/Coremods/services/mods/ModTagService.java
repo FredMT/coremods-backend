@@ -1,6 +1,5 @@
 package com.tofutracker.Coremods.services.mods;
 
-import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.tags.CreateModTagResponse;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.ModTag;
@@ -12,12 +11,8 @@ import com.tofutracker.Coremods.exception.UnauthorizedException;
 import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ModTagRepository;
 import com.tofutracker.Coremods.repository.ModTagVoteRepository;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +28,7 @@ public class ModTagService {
     private final ModTagVoteRepository modTagVoteRepository;
 
     @Transactional
-    public ResponseEntity<ApiResponse<CreateModTagResponse>> createTag(Long modId, String tag, User user) {
+    public CreateModTagResponse createTag(Long modId, String tag, User user) {
         validateUserForOperation(user);
 
         GameMod mod = gameModRepository.findById(modId)
@@ -57,14 +52,11 @@ public class ModTagService {
 
         modTagRepository.save(modTag);
 
-        CreateModTagResponse response = CreateModTagResponse.fromEntity(modTag);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Tag created successfully", response));
+        return CreateModTagResponse.fromEntity(modTag);
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> voteForModTag(Long modId, Long tagId, User user) {
+    public void voteForModTag(Long modId, Long tagId, User user) {
         validateUserForOperation(user);
 
         gameModRepository.findById(modId)
@@ -87,12 +79,11 @@ public class ModTagService {
 
         modTagVoteRepository.save(modTagVote);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Tag voted successfully"));
+
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> deleteVoteForTag(Long modId, Long tagId, User user) {
+    public void deleteVoteForTag(Long modId, Long tagId, User user) {
         validateUserForOperation(user);
 
         gameModRepository.findById(modId)
@@ -107,9 +98,6 @@ public class ModTagService {
                         "Vote not found for tag with id: " + tagId + " and user with id: " + user.getId()));
 
         modTagVoteRepository.delete(modTagVote);
-
-        return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                .body(ApiResponse.success("Tag unvoted successfully"));
     }
 
     private String normalizeTag(String tag) {

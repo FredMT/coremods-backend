@@ -3,18 +3,17 @@ package com.tofutracker.Coremods.services.mods;
 import com.tofutracker.Coremods.config.enums.mod_distribution.ModDistributionPermissionOption;
 import com.tofutracker.Coremods.config.enums.mod_distribution.YesOrNoCreditOption;
 import com.tofutracker.Coremods.dto.requests.mods.permissions.CreateOrUpdateModPermissionsRequest;
-import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.ModPermissions;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
+import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ModPermissionsRepository;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -24,17 +23,18 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class ModPermissionsService {
 
     private final ModPermissionsRepository modPermissionsRepository;
-
-    public ModPermissionsService(ModPermissionsRepository modPermissionsRepository) {
-        this.modPermissionsRepository = modPermissionsRepository;
-    }
+    private final GameModRepository gameModRepository;
 
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> createModPermissions(GameMod gameMod, CreateOrUpdateModPermissionsRequest request, User currentUser) {
+    public void createModPermissions(Long gameModId, CreateOrUpdateModPermissionsRequest request, User currentUser) {
+
+        GameMod gameMod = gameModRepository.findById(gameModId)
+                .orElseThrow(() -> new ResourceNotFoundException("GameMod", "id", gameModId));
 
         if (!currentUser.getId().equals(gameMod.getAuthor().getId())) {
             throw new ForbiddenException("You are not authorized to create permissions for this mod.");
@@ -42,7 +42,8 @@ public class ModPermissionsService {
 
         validateModPermissionsRequest(request);
 
-        Optional<ModPermissions> existingPermissions = modPermissionsRepository.findByModIdAndIsLatestTrue(gameMod.getId());
+        Optional<ModPermissions> existingPermissions = modPermissionsRepository
+                .findByModIdAndIsLatestTrue(gameMod.getId());
 
         if (existingPermissions.isPresent()) {
             throw new BadRequestException("Mod permissions already exists.");
@@ -57,12 +58,13 @@ public class ModPermissionsService {
         }
 
         modPermissionsRepository.save(modPermissionsToSave);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Mod permissions saved successfully"));
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Void>> updateModPermissions(GameMod gameMod, @Valid CreateOrUpdateModPermissionsRequest request, User currentUser) {
+    public void updateModPermissions(Long gameModId, @Valid CreateOrUpdateModPermissionsRequest request, User currentUser) {
+
+        GameMod gameMod = gameModRepository.findById(gameModId)
+                .orElseThrow(() -> new ResourceNotFoundException("GameMod", "id", gameModId));
 
         if (!currentUser.getId().equals(gameMod.getAuthor().getId())) {
             throw new ForbiddenException("You are not authorized to update permissions for this mod.");
@@ -92,18 +94,18 @@ public class ModPermissionsService {
         }
 
         modPermissionsRepository.save(newPermissions);
-
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Mod permissions updated successfully"));
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<ModPermissions>> getLatestModPermissions(GameMod gameMod) {
-        ModPermissions modPermissions = modPermissionsRepository.
+    public ModPermissions getLatestModPermissions(Long gameModId) {
+
+        GameMod gameMod = gameModRepository.findById(gameModId)
+                .orElseThrow(() -> new ResourceNotFoundException("GameMod", "id", gameModId));
+
+        return modPermissionsRepository.
                 findByModIdAndIsLatestTrue(gameMod.getId())
                 .orElseThrow(() -> new ResourceNotFoundException
                         ("No permissions found for mod with ID: " + gameMod.getId()));
-
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("Latest mod permissions retrieved successfully", modPermissions));
     }
 
     private void validateModPermissionsRequest(CreateOrUpdateModPermissionsRequest request) {

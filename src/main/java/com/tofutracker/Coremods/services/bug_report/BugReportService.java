@@ -6,27 +6,23 @@ import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateBugReportReq
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.CreateCommentBugReportRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportPriorityRequest;
 import com.tofutracker.Coremods.dto.requests.mods.bug_reports.UpdateBugReportStatusRequest;
-import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportPriorityUpdateResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportResponse;
 import com.tofutracker.Coremods.dto.responses.mods.bug_reports.BugReportStatusUpdateResponse;
 import com.tofutracker.Coremods.entity.BugReport;
+import com.tofutracker.Coremods.entity.Comment;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.User;
-import com.tofutracker.Coremods.entity.Comment;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.exception.UnauthorizedException;
 import com.tofutracker.Coremods.repository.BugReportRepository;
-import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.CommentRepository;
+import com.tofutracker.Coremods.repository.GameModRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,8 +136,11 @@ public class BugReportService {
         bugReportRepository.delete(bugReport);
     }
 
-    public ResponseEntity<ApiResponse<Void>> createCommentOnBugReport(BugReport bugReport, User currentUser,
+    public Comment createCommentOnBugReport(Long bugReportId, User currentUser,
             @Valid CreateCommentBugReportRequest request) {
+
+        BugReport bugReport = bugReportRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bug report not found with id: " + bugReportId));
 
         if (commentRepository.findByCommentableTypeAndCommentableIdAndParentId(
                 "bug_report", bugReport.getId(), null).isPresent()) {
@@ -158,12 +157,16 @@ public class BugReportService {
 
         commentRepository.save(comment);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Commented on bug report successfully."));
+        return comment;
     }
 
-    public ResponseEntity<ApiResponse<Void>> replyToBugReportComment(BugReport bugReport, Comment comment,
-            User currentUser, @Valid CreateCommentBugReportRequest request) {
+    public Comment replyToBugReportComment(Long bugReportId, Long commentId,
+                                           User currentUser, @Valid CreateCommentBugReportRequest request) {
+        BugReport bugReport = bugReportRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bug report not found with id: " + bugReportId));
+
+        Comment comment = commentRepository.findById(bugReportId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
 
         Comment reply = Comment.builder()
                 .commentableType("bug_report")
@@ -176,8 +179,7 @@ public class BugReportService {
 
         commentRepository.save(reply);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Replied to bug report comment successfully."));
+        return reply;
     }
 
     private void validateUserForOperation(User user) {

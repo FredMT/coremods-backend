@@ -1,7 +1,6 @@
 package com.tofutracker.Coremods.services.mods;
 
 import com.tofutracker.Coremods.dto.requests.mods.upload_mod.ModRequirementsMirrorsRequest;
-import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.entity.*;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ForbiddenException;
@@ -27,16 +26,18 @@ public class ModRequirementsMirrorsService {
     private final ModMirrorRepository modMirrorRepository;
 
     @Transactional
-    public ApiResponse<Void> saveModRequirementsMirrors(ModRequirementsMirrorsRequest request, GameMod gameMod,
+    public void saveModRequirementsMirrors(ModRequirementsMirrorsRequest request, Long modId,
             User currentUser) {
+
+        GameMod gameMod = gameModRepository.findById(modId)
+                .orElseThrow(()  -> new BadRequestException("Game mod not found: " + modId));
+
         if (!gameMod.getAuthor().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("You are not the author of this mod");
         }
 
         validateRequest(request, gameMod);
         saveData(request, gameMod);
-
-        return ApiResponse.success("Mod requirements and mirrors saved successfully");
     }
 
     private void validateRequest(ModRequirementsMirrorsRequest request, GameMod gameMod) {

@@ -1,10 +1,10 @@
 package com.tofutracker.Coremods.services.auth;
 
-import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.dto.requests.auth.ForgotPasswordRequest;
 import com.tofutracker.Coremods.dto.requests.auth.ForgotPasswordResetRequest;
 import com.tofutracker.Coremods.dto.requests.auth.RegisterRequest;
 import com.tofutracker.Coremods.dto.requests.auth.ResetPasswordRequest;
+import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
@@ -24,7 +24,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.BindingResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,14 +39,7 @@ public class AuthService {
     private final PasswordResetService passwordResetService;
 
     public ResponseEntity<ApiResponse<Map<String, Object>>> register(
-            RegisterRequest request, BindingResult bindingResult) {
-
-        if (bindingResult.hasErrors()) {
-            Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Validation failed", errors));
-        }
+            RegisterRequest request) {
 
         try {
             userService.registerUser(
@@ -159,14 +151,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(ResetPasswordRequest request,
-            BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Validation failed", errors));
-        }
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPassword(ResetPasswordRequest request) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -214,14 +199,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(ForgotPasswordRequest request,
-            BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Validation failed", errors));
-        }
+    public ResponseEntity<ApiResponse<Map<String, Object>>> forgotPassword(ForgotPasswordRequest request) {
 
         try {
             Optional<User> userOpt = userService.findByEmail(request.getEmail());
@@ -245,15 +223,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(ForgotPasswordResetRequest request,
-            BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            Map<String, Object> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Validation failed", errors));
-        }
-
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resetPasswordWithToken(ForgotPasswordResetRequest request) {
         try {
             Optional<User> userOpt = passwordResetService.getUserByResetToken(request.getToken());
 

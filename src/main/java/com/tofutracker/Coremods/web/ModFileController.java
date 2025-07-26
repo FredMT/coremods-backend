@@ -10,8 +10,6 @@ import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.mods.ModFileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +21,6 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/v1/mods/{modId}/files")
 @RequiredArgsConstructor
-@Slf4j
 public class ModFileController {
 
     private final ModFileService modFileService;
@@ -54,18 +51,17 @@ public class ModFileController {
 
         ModFileUploadResponse response = modFileService.startModFileUpload(modId, request, currentUser);
         
-        return ResponseEntity.status(HttpStatus.ACCEPTED)
-                .body(ApiResponse.success("File upload started successfully", response));
+        return ResponseEntity.ok(ApiResponse.success("File upload started successfully", response));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{fileId}")
     public ResponseEntity<ApiResponse<ModFileEditResponse>> editModFile(
             @PathVariable Long modId,
-            @PathVariable Long id,
+            @PathVariable Long fileId,
             @Valid @RequestBody ModFileEditRequest request,
             @AuthenticationPrincipal User currentUser) {
         
-        ModFileEditResponse response = modFileService.editModFile(modId, id, request, currentUser);
+        ModFileEditResponse response = modFileService.editModFile(modId, fileId, request, currentUser);
         return ResponseEntity.ok(ApiResponse.success("Mod file details updated successfully", response));
     }
 } 
