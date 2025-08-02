@@ -129,5 +129,5 @@ Content-Type: application/json
 | 2025-07-18 | ✅ Mod tagging and endorsement system implemented                                                                                              |
 | 2025-07-18 | ✅ User blocking system implemented to block user from specific mod, globally from mod author's mods, from DMs or from interactions (comments) |
 | 2025-07-20 | ✅ Mod permissions and credits implemented                                                                                                     |
-| 2025-07-24 | ✅ Archive file validation                                                                                     |
+| 2025-07-24 | ✅ Archive file validation                                                                                                                     |
 | 2025-07-25 | ✅ Mod file upload implemented (without VirusTotal scan)                                                                                       |

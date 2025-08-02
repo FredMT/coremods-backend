@@ -1,11 +1,9 @@
 package com.tofutracker.Coremods.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tofutracker.Coremods.dto.requests.auth.LoginRequest;
-import com.tofutracker.Coremods.entity.User;
-import com.tofutracker.Coremods.services.auth.CustomUserDetailsService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -36,8 +34,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tofutracker.Coremods.dto.requests.auth.LoginRequest;
+import com.tofutracker.Coremods.dto.responses.UserInfo;
+import com.tofutracker.Coremods.entity.User;
+import com.tofutracker.Coremods.services.auth.CustomUserDetailsService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -85,7 +89,7 @@ public class SecurityConfig {
             throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(authz -> authz // TODO: DO proper request matching
+                .authorizeHttpRequests(authz -> authz
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/verify-email",
@@ -96,7 +100,7 @@ public class SecurityConfig {
                                 "/error")
                         .permitAll()
                         .requestMatchers("/api/auth/reset-password").authenticated()
-                        .anyRequest().permitAll()) // TODO: change to authenticated
+                        .anyRequest().permitAll())
                 .addFilterBefore(jsonAuthenticationFilter(authenticationManager),
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
@@ -104,15 +108,14 @@ public class SecurityConfig {
                         .logoutSuccessHandler((req, res, auth) -> {
                             res.setStatus(HttpServletResponse.SC_NO_CONTENT);
                         })
-                        .invalidateHttpSession(true)
-                        .deleteCookies("SESSION"))
+                        .invalidateHttpSession(true))
                 .sessionManagement(session -> session
                         .sessionFixation().changeSessionId()
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry())
                         .maxSessionsPreventsLogin(false))
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**") // TODO REMOVE
+                        .ignoringRequestMatchers("/api/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .securityContext(context -> context
                         .securityContextRepository(securityContextRepository()))
@@ -125,8 +128,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-XSRF-TOKEN"));
+        config.setAllowedMethods(Collections.singletonList("*"));
+        config.setAllowedHeaders(Collections.singletonList("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
@@ -189,10 +192,16 @@ public class SecurityConfig {
 
             if (!user.isEmailVerified()) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.sendRedirect("http://localhost:3000/verify-email");
                 response.getWriter().write(
                         "{\"message\":\"Email not verified. Please check your email for verification link.\"}");
             } else {
-                response.getWriter().write("{\"message\":\"Login successful\"}");
+                UserInfo userInfo = new UserInfo(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.isEmailVerified());
+                response.getWriter().write(objectMapper.writeValueAsString(userInfo));
             }
         };
     }

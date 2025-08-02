@@ -1,35 +1,23 @@
 package com.tofutracker.Coremods.dto.igdb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Simplified response DTO containing only essential game information
- * for frontend display purposes.
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class GameSummaryResponse {
-    private Long id;
-    private String name;
+@Schema(description = "Simplified response containing essential game information.")
+public record GameSummaryResponse(
+        @Schema(description = "Unique ID of the game", example = "12345")
+        Long id,
 
-    @JsonProperty("cover")
-    private Cover cover;
-
-    public GameSummaryResponse(Long id, String name, String imageId) {
-        this.id = id;
-        this.name = name;
-        this.cover = imageId != null ? new Cover(imageId) : null;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Cover {
-        @JsonProperty("image_id")
-        private String imageId;
-    }
+        @Schema(description = "Name of the game", example = "The Legend of Zelda")
+        String name,
+        @JsonProperty("cover")
+        @Schema(description = "Optional cover image details", nullable = true)
+        Cover cover
+) {
+    @Schema(description = "Cover image information")
+    public record Cover(
+            @JsonProperty("image_id")
+            @Schema(description = "ID of the cover image", example = "abc123")
+            String imageId
+    ) {}
 }

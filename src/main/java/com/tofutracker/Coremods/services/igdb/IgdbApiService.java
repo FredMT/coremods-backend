@@ -51,7 +51,7 @@ public class IgdbApiService {
         return String.format(
                 "search \"%s\"; " +
                         "fields id, cover.image_id, name; " +
-                        "where first_release_date != null & total_rating != null; " +
+//                        "where first_release_date != null & total_rating != null; " +
                         "limit 20;",
                 query);
     }

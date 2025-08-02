@@ -2,8 +2,11 @@ package com.tofutracker.Coremods.exception;
 
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
 import jakarta.persistence.Entity;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -14,17 +17,12 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,21 +30,6 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-
-    /**
-     * Helper method to extract path variable value from the current request
-     */
-    private String extractPathVariableValue(String variableName) {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes != null) {
-            HttpServletRequest request = attributes.getRequest();
-            Map<String, String> pathVariables = (Map<String, String>) request.getAttribute("org.springframework.web.servlet.HandlerMapping.uriTemplateVariables");
-            if (pathVariables != null) {
-                return pathVariables.get(variableName);
-            }
-        }
-        return null;
-    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFoundException(ResourceNotFoundException ex) {
@@ -69,7 +52,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedException(UnauthorizedException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedException(HttpServletResponse response, UnauthorizedException ex) {
+        ResponseCookie cookie = ResponseCookie.from("SESSION", "")
+                .path("/")                        // must match original
+                .httpOnly(true)                  // must match original
+                .sameSite("Strict")              // or "Lax", match original
+                .secure(true)                    // if your app sets Secure
+                .maxAge(0)                       // delete immediately
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(ex.getMessage()));
     }
 
@@ -130,33 +122,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiResponse<Void>> handleMissingParams(MissingServletRequestParameterException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Missing parameter: " + ex.getParameterName()));
-    }
-
-    @ExceptionHandler(MissingPathVariableException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingPathVariable(MissingPathVariableException ex) {
-        Class<?> parameterType = ex.getParameter().getParameterType();
-
-        // Check if the parameter type is a Spring Data managed domain class (JPA
-        // entity)
-        if (parameterType.isAnnotationPresent(Entity.class)) {
-            String entityType = parameterType.getSimpleName();
-            String variableName = ex.getVariableName();
-
-            // Try to extract the actual path variable value from the request
-            String pathVariableValue = extractPathVariableValue(variableName);
-
-            String message;
-            if (pathVariableValue != null) {
-                message = String.format("%s with id: %s not found", entityType, pathVariableValue);
-            } else {
-                message = String.format("%s not found", entityType);
-            }
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(message));
-        }
-
-        // For non-entity path variables, return a generic message
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Missing path variable: " + ex.getVariableName()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

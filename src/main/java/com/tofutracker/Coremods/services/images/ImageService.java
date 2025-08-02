@@ -1,5 +1,16 @@
 package com.tofutracker.Coremods.services.images;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.tofutracker.Coremods.config.enums.ModImageType;
 import com.tofutracker.Coremods.entity.GameMod;
 import com.tofutracker.Coremods.entity.Image;
@@ -9,18 +20,13 @@ import com.tofutracker.Coremods.exception.ForbiddenException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
 import com.tofutracker.Coremods.repository.GameModRepository;
 import com.tofutracker.Coremods.repository.ImageRepository;
+
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +67,8 @@ public class ImageService {
         validateModOwnership(gameModId, currentUser);
         validateImageFile(multipartFile, ModImageType.MOD_IMAGE);
 
-        long existingCount = imageRepository.countByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
+        long existingCount = imageRepository
+                .countByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
                 .orElse(0L);
 
         int displayOrder = (int) (existingCount + 1);
@@ -76,7 +83,7 @@ public class ImageService {
 
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + imageId));
-        
+
         log.info("Deleting image: {}, mod: {}, user: {}", imageId, image.getImageableId(), currentUser.getUsername());
         deleteImageFile(image);
     }
@@ -103,8 +110,14 @@ public class ImageService {
             ModImageType imageType, Integer displayOrder) throws IOException {
         String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
         String baseFileName = FilenameUtils.removeExtension(multipartFile.getOriginalFilename());
-        String uniqueFileName = baseFileName + "_" + UUID.randomUUID().toString().replace("-", "");
+        String sanitizedFileName = sanitizeFileName(baseFileName);
+        String uniqueFileName = sanitizedFileName + "_" + UUID.randomUUID().toString().replace("-", "");
         String storageKey = String.format("mods/%d/images/%s.%s", gameModId, uniqueFileName, extension);
+
+        if (storageKey.startsWith(".") || storageKey.contains("..")) {
+            throw new IllegalArgumentException("Invalid storage key: keys cannot start with '.' or contain '..'");
+        }
+
         imageStorageService.uploadImage(multipartFile, storageKey);
 
         Image image = Image.builder()
@@ -121,14 +134,15 @@ public class ImageService {
 
     private void deleteImageFile(Image image) throws Exception {
         imageStorageService.deleteImage(image);
-        
+
         Integer deletedDisplayOrder = image.getDisplayOrder();
         imageRepository.delete(image);
-        
+
         if (deletedDisplayOrder != null) {
-            imageRepository.shiftDisplayOrderDown(image.getImageableType(), image.getImageableId(), deletedDisplayOrder);
+            imageRepository.shiftDisplayOrderDown(image.getImageableType(), image.getImageableId(),
+                    deletedDisplayOrder);
         }
-        
+
         log.info("Image deleted successfully: {}", image.getStorageKey());
     }
 
@@ -173,9 +187,21 @@ public class ImageService {
     private void validateModOwnership(Long gameModId, User currentUser) {
         GameMod gameMod = gameModRepository.findById(gameModId)
                 .orElseThrow(() -> new ResourceNotFoundException("GameMod not found with id: " + gameModId));
-        
+
         if (!gameMod.getAuthor().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("You are not authorized to modify this mod's images");
         }
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return "image";
+        }
+
+        return fileName
+                .replaceAll("[^a-zA-Z0-9._-]", "_")
+                .replaceAll("_{2,}", "_")
+                .replaceAll("^[._]+", "")
+                .replaceAll("[._]+$", "");
     }
 }

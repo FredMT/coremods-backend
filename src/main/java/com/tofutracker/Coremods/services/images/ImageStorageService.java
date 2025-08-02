@@ -1,50 +1,81 @@
 package com.tofutracker.Coremods.services.images;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.tofutracker.Coremods.entity.Image;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import com.tofutracker.Coremods.entity.Image;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.Upload;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ImageStorageService {
 
-    private final AmazonS3 s3Client;
+    private final S3Client s3Client;
+    private final S3TransferManager transferManager;
 
-    @Value("${do.space.bucket}")
-    private String doSpaceBucket;
+    @Value("${cloudflare.r2.bucket}")
+    private String bucket;
 
-    public void uploadImage(MultipartFile file, String storageKey) throws IOException {
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(file.getSize());
+        public void uploadImage(MultipartFile file, String storageKey) throws IOException {
+            try {
+                PutObjectRequest.Builder requestBuilder = PutObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(storageKey)
+                        .acl(ObjectCannedACL.PUBLIC_READ);
 
-        String contentType = file.getContentType();
-        if (contentType != null && !contentType.isEmpty()) {
-            metadata.setContentType(contentType);
+                String contentType = file.getContentType();
+                if (contentType != null && !contentType.isEmpty()) {
+                    requestBuilder.contentType(contentType);
+                }
+
+                UploadRequest uploadRequest = UploadRequest.builder()
+                        .putObjectRequest(requestBuilder.build())
+                        .addTransferListener(LoggingTransferListener.create()) 
+                        .requestBody(AsyncRequestBody.fromBytes(file.getBytes()))
+                        .build();
+
+                Upload upload = transferManager.upload(uploadRequest);
+
+                upload.completionFuture().join();
+                log.info("Image uploaded successfully to storage: {}", storageKey);
+            } catch (Exception e) {
+                log.error("Failed to upload image: {}", e.getMessage(), e);
+                throw new RuntimeException("Failed to upload image to storage", e);
+            }
         }
 
-        s3Client.putObject(new PutObjectRequest(doSpaceBucket, storageKey, file.getInputStream(), metadata)
-                .withCannedAcl(CannedAccessControlList.PublicRead));
-
-        log.info("Image uploaded successfully to storage: {}", storageKey);
-    }
-
     public void deleteImage(Image image) {
-        s3Client.deleteObject(new DeleteObjectRequest(doSpaceBucket, image.getStorageKey()));
+        software.amazon.awssdk.services.s3.model.DeleteObjectRequest deleteRequest = software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(image.getStorageKey())
+                .build();
+
+        s3Client.deleteObject(deleteRequest);
         log.info("Image deleted from storage: {}", image.getStorageKey());
     }
 
     public String getImageUrl(Image image) {
-        return s3Client.getUrl(doSpaceBucket, image.getStorageKey()).toString();
+        GetUrlRequest getUrlRequest = GetUrlRequest.builder()
+                .bucket(bucket)
+                .key(image.getStorageKey())
+                .build();
+
+        return s3Client.utilities().getUrl(getUrlRequest).toString();
     }
-} 
+}
