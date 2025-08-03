@@ -60,14 +60,14 @@ public class ImageStorageService {
             }
         }
 
-    public void deleteImage(Image image) {
+    public void deleteImage(String storageKey) {
         software.amazon.awssdk.services.s3.model.DeleteObjectRequest deleteRequest = software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
                 .bucket(bucket)
-                .key(image.getStorageKey())
+                .key(storageKey)
                 .build();
 
         s3Client.deleteObject(deleteRequest);
-        log.info("Image deleted from storage: {}", image.getStorageKey());
+        log.info("Image deleted from storage: {}", storageKey);
     }
 
     public String getImageUrl(Image image) {

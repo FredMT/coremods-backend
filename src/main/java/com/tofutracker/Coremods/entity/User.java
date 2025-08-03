@@ -1,19 +1,35 @@
 package com.tofutracker.Coremods.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tofutracker.Coremods.config.enums.Role;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Objects;
+
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tofutracker.Coremods.config.enums.Role;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "users")
@@ -74,6 +90,9 @@ public class User implements UserDetails {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "image", columnDefinition = "TEXT")
+    private String image;
 
     @PrePersist
     protected void onCreate() {

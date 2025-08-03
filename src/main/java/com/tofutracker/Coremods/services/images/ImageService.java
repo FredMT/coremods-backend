@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,9 +23,6 @@ import com.tofutracker.Coremods.repository.ImageRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +74,7 @@ public class ImageService {
     }
 
     @Transactional
-    public void deleteImage(Long gameModId, Long imageId, User currentUser) throws Exception {
+    public void deleteImage(Long gameModId, Long imageId, User currentUser) {
         validateModOwnership(gameModId, currentUser);
 
         Image image = imageRepository.findById(imageId)
@@ -100,10 +96,6 @@ public class ImageService {
     public List<Image> getModImages(Long gameModId) {
         return imageRepository.findByImageableTypeAndImageableIdAndImageType("MOD", gameModId, ModImageType.MOD_IMAGE)
                 .orElse(List.of());
-    }
-
-    public String getImageUrl(Image image) {
-        return imageStorageService.getImageUrl(image);
     }
 
     private Image saveImageFile(MultipartFile multipartFile, Long gameModId,
@@ -132,8 +124,8 @@ public class ImageService {
         return imageRepository.save(image);
     }
 
-    private void deleteImageFile(Image image) throws Exception {
-        imageStorageService.deleteImage(image);
+    private void deleteImageFile(Image image) {
+        imageStorageService.deleteImage(image.getStorageKey());
 
         Integer deletedDisplayOrder = image.getDisplayOrder();
         imageRepository.delete(image);

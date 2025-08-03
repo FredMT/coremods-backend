@@ -2,15 +2,19 @@ package com.tofutracker.Coremods.services;
 
 import java.util.Optional;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.tofutracker.Coremods.config.enums.Role;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.RoleAlreadyAssignedException;
 import com.tofutracker.Coremods.repository.UserRepository;
 import com.tofutracker.Coremods.services.email.EmailVerificationService;
+import com.tofutracker.Coremods.services.images.ImageStorageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +29,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
     private final SessionManagementService sessionManagementService;
+    private final ImageStorageService imageStorageService;
 
     public void registerUser(String username, String email, String password) {
 
@@ -107,5 +112,53 @@ public class UserService {
             log.info("Role for user {} is already {}, no update needed", user.getUsername(), newRole);
             throw new RoleAlreadyAssignedException("User already has role: " + newRole);
         }
+    }
+
+    @Transactional
+    public void uploadUserImage(MultipartFile file, User currentUser) {
+        try {
+            Assert.notNull(currentUser, "Current user cannot be null");
+            String originalFilename = file.getOriginalFilename();
+            String extension = FilenameUtils.getExtension(originalFilename);
+            if (extension == null) {
+                throw new IllegalArgumentException("File must have an extension");
+            }
+
+            User user = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + currentUser.getId()));
+
+            String currentStorageKey = user.getImage();
+
+            if (currentStorageKey != null) {
+                imageStorageService.deleteImage(currentStorageKey);
+            }
+
+            String newStorageKey = String.format("avatars/%d.%s", user.getId(), extension.toLowerCase());
+
+            imageStorageService.uploadImage(file, newStorageKey);
+
+            currentUser.setImage(newStorageKey);
+            userRepository.save(currentUser);
+
+        } catch (Exception e) {
+            log.error("Failed to upload user image: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to upload user image", e);
+        }
+    }
+
+    public void deleteUserAvatar(User currentUser) {
+        Assert.notNull(currentUser, "Current user cannot be null");
+
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + currentUser.getId()));
+
+        if (user.getImage() == null) {
+            throw new IllegalArgumentException("User has no avatar to delete");
+        }
+        
+        imageStorageService.deleteImage(user.getImage());
+
+        user.setImage(null);
+        userRepository.save(user);
     }
 }
