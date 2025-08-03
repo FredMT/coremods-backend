@@ -3,6 +3,7 @@ package com.tofutracker.Coremods.config;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -105,9 +106,7 @@ public class SecurityConfig {
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((req, res, auth) -> {
-                            res.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                        })
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_NO_CONTENT))
                         .invalidateHttpSession(true))
                 .sessionManagement(session -> session
                         .sessionFixation().changeSessionId()
@@ -115,7 +114,7 @@ public class SecurityConfig {
                         .sessionRegistry(sessionRegistry())
                         .maxSessionsPreventsLogin(false))
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/**")
+                        .ignoringRequestMatchers("/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .securityContext(context -> context
                         .securityContextRepository(securityContextRepository()))
@@ -192,9 +191,7 @@ public class SecurityConfig {
 
             if (!user.isEmailVerified()) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.sendRedirect("http://localhost:3000/verify-email");
-                response.getWriter().write(
-                        "{\"message\":\"Email not verified. Please check your email for verification link.\"}");
+                response.setHeader("Location", "http://localhost:3000/verify-email");
             } else {
                 UserInfo userInfo = new UserInfo(
                         user.getId(),

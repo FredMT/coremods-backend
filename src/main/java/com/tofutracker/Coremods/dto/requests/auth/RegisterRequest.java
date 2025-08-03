@@ -2,6 +2,9 @@ package com.tofutracker.Coremods.dto.requests.auth;
 
 import com.tofutracker.Coremods.dto.annotation.PasswordMatch;
 import com.tofutracker.Coremods.dto.annotation.StrongPassword;
+import com.tofutracker.Coremods.dto.annotation.UniqueEmail;
+import com.tofutracker.Coremods.dto.annotation.UniqueUsername;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -13,10 +16,12 @@ public class RegisterRequest {
 
     @NotBlank(message = "Username is required")
     @Size(min = 4, max = 12, message = "Username must be between 4 and 12 characters")
+    @UniqueUsername
     private String username;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
+    @UniqueEmail
     private String email;
 
     @NotBlank(message = "Password is required")
@@ -26,4 +31,4 @@ public class RegisterRequest {
 
     @NotBlank(message = "Confirm password is required")
     private String confirmPassword;
-} 
+}

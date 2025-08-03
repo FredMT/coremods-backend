@@ -1,0 +1,27 @@
+package com.tofutracker.Coremods.dto.annotation;
+
+import com.tofutracker.Coremods.repository.UserRepository;
+
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername, String> {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public void initialize(UniqueUsername constraintAnnotation) {
+        // No initialization needed
+    }
+
+    @Override
+    public boolean isValid(String username, ConstraintValidatorContext context) {
+        if (username == null || username.trim().isEmpty()) {
+            return true; // Let @NotBlank handle null/empty validation
+        }
+
+        return !userRepository.existsByUsername(username);
+    }
+}
