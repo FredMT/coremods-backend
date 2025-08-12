@@ -2,6 +2,7 @@ package com.tofutracker.Coremods.services;
 
 import java.util.Optional;
 
+import com.tofutracker.Coremods.exception.UnauthorizedException;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -117,7 +118,10 @@ public class UserService {
     @Transactional
     public void uploadUserImage(MultipartFile file, User currentUser) {
         try {
-            Assert.notNull(currentUser, "Current user cannot be null");
+            if (currentUser == null) {
+                throw new UnauthorizedException("Current user cannot be null");
+            }
+
             String originalFilename = file.getOriginalFilename();
             String extension = FilenameUtils.getExtension(originalFilename);
             if (extension == null) {
@@ -140,6 +144,8 @@ public class UserService {
             currentUser.setImage(newStorageKey);
             userRepository.save(currentUser);
 
+        } catch (UnauthorizedException ex) {
+            throw ex;
         } catch (Exception e) {
             log.error("Failed to upload user image: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to upload user image", e);
@@ -155,7 +161,7 @@ public class UserService {
         if (user.getImage() == null) {
             throw new IllegalArgumentException("User has no avatar to delete");
         }
-        
+
         imageStorageService.deleteImage(user.getImage());
 
         user.setImage(null);

@@ -1,7 +1,5 @@
 package com.tofutracker.Coremods.web;
 
-import java.util.Map;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tofutracker.Coremods.dto.requests.UserImageUploadRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.CurrentUserResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.services.UserService;
 import com.tofutracker.Coremods.services.auth.AuthService;
@@ -31,7 +30,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser() {
+    public ResponseEntity<CurrentUserResponse> getCurrentUser() {
         return authService.getCurrentUser();
     }
 

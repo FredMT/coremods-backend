@@ -37,3 +37,4 @@ application.properties
 .cursor
 .DS_Store
 mvnw
+.readme/

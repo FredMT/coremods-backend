@@ -1,6 +1,5 @@
 package com.tofutracker.Coremods.services.auth;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,6 +17,7 @@ import com.tofutracker.Coremods.dto.requests.auth.ForgotPasswordResetRequest;
 import com.tofutracker.Coremods.dto.requests.auth.RegisterRequest;
 import com.tofutracker.Coremods.dto.requests.auth.ResetPasswordRequest;
 import com.tofutracker.Coremods.dto.responses.ApiResponse;
+import com.tofutracker.Coremods.dto.responses.CurrentUserResponse;
 import com.tofutracker.Coremods.entity.User;
 import com.tofutracker.Coremods.exception.BadRequestException;
 import com.tofutracker.Coremods.exception.ResourceNotFoundException;
@@ -108,7 +108,7 @@ public class AuthService {
         }
     }
 
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser() {
+    public ResponseEntity<CurrentUserResponse> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -132,9 +132,9 @@ public class AuthService {
                 throw new UnauthorizedException("User no longer exists");
             }
 
-            Map<String, Object> userData = getUserObjectMap(currentUser.get());
+            CurrentUserResponse userData = getCurrentUserResponse(currentUser.get());
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(ApiResponse.success("User data retrieved", userData));
+                    .body(userData);
         } catch (ClassCastException e) {
             log.error("Error casting authentication principal to User", e);
             throw new UnauthorizedException("Authentication error");
@@ -254,13 +254,13 @@ public class AuthService {
         }
     }
 
-    private static Map<String, Object> getUserObjectMap(User user) {
-        Map<String, Object> userData = new HashMap<>();
-        userData.put("userId", user.getId());
-        userData.put("username", user.getUsername());
-        userData.put("email", user.getEmail());
-        userData.put("emailVerified", user.getEmailVerified());
-        userData.put("image", user.getImage());
-        return userData;
+    private static CurrentUserResponse getCurrentUserResponse(User user) {
+        return CurrentUserResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .emailVerified(user.getEmailVerified())
+                .image(user.getImage())
+                .build();
     }
 }
